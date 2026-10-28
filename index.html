@@ -1,0 +1,964 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Simulador de Polarización</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Lexend:wght@400;500;600&display=swap">
+<style>
+/* Layout: encabezado, 3 problemas, 6 secciones que se abren de a una (la Teoría primero y con columna de lectura). */
+:root{
+  --bg:#f2f3f9; --card:#ffffff; --ink:#1a1e3a; --muted:#566086; --line:#d9dcec;
+  --accent:#3a3fd6; --accent-ink:#ffffff; --soft:#e8eaf7; --amber:#b86e00;
+  --ok:#14794a; --bad:#b3261e;
+  --font-b:"Lexend","Segoe UI",system-ui,sans-serif;
+  --font-m:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1121; --card:#171b31; --ink:#e9ebfa; --muted:#9aa2c8; --line:#2a2f50;
+    --accent:#9a9dff; --accent-ink:#0e1121; --soft:#202543; --amber:#f2b441;
+    --ok:#6fd49b; --bad:#ff8f86; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1121; --card:#171b31; --ink:#e9ebfa; --muted:#9aa2c8; --line:#2a2f50;
+  --accent:#9a9dff; --accent-ink:#0e1121; --soft:#202543; --amber:#f2b441;
+  --ok:#6fd49b; --bad:#ff8f86; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-b); font-size:15px; line-height:1.55;
+  padding-block:20px 56px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+main{max-width:780px; margin:0 auto; display:grid; gap:16px; min-width:0}
+.kicker{font-family:var(--font-m); font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
+h1{font-weight:600; font-size:clamp(26px,6vw,36px); line-height:1.12; margin:4px 0 0; text-wrap:balance}
+h2{font-weight:600; font-size:21px; line-height:1.2; margin:0; text-wrap:balance}
+h3{font-weight:600; font-size:17px; line-height:1.25; margin:0; text-wrap:balance}
+button{font-family:inherit}
+button:focus-visible,input:focus-visible,summary:focus-visible,.stp:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.problems{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.pb{font-size:inherit; text-align:left; cursor:pointer; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; min-width:0}
+.pb b{display:block; font-size:14.5px; line-height:1.2}
+.pb span{display:block; font-size:12px; color:var(--muted); margin-top:3px}
+.pb[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.pb[aria-pressed="true"] span{color:inherit; opacity:.85}
+@media (max-width:460px){ .pb{padding:8px 9px} .pb b{font-size:13px} .pb span{font-size:11px} }
+
+.enun{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; display:grid; gap:6px}
+.enun .lab{font-family:var(--font-m); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.enun p{margin:0; font-size:16px; text-wrap:pretty}
+details.full{color:var(--muted); font-size:13.5px}
+details.full summary{cursor:pointer; width:max-content}
+details.full p{margin:6px 0 0; font-size:13.5px}
+
+.sections{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
+@media (min-width:720px){ .sections{grid-template-columns:repeat(6,1fr)} }
+.sb{font-size:13.5px; cursor:pointer; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:999px; padding:8px 6px; text-align:center; min-width:0}
+.sb[aria-current="page"]{background:var(--soft); border-color:var(--accent); font-weight:600; color:var(--accent)}
+
+.sec{display:grid; gap:14px; min-width:0}
+.panel{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; min-width:0}
+.prose{max-width:64ch}
+.prose h3{margin-top:10px}
+.prose p{margin:0; font-size:16.5px; line-height:1.68; text-wrap:pretty}
+.prose > * + p, .prose > p + p{margin-top:0}
+.prose{display:grid; gap:10px}
+.note{color:var(--muted); font-size:13.5px}
+.idea{margin:0; font-size:15px; color:var(--muted)}
+.idea b{color:var(--ink)}
+.fig{margin:6px 0; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--soft)}
+.fig svg{display:block; width:100%; height:auto; max-width:420px; margin:0 auto}
+.fig text{font-family:var(--font-b); font-size:11px; fill:var(--muted)}
+.fig figcaption{font-size:13px; color:var(--muted); margin-top:6px}
+.tblw{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums}
+th{font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap}
+td.num{font-family:var(--font-m); white-space:nowrap}
+
+.btn{font-size:14px; cursor:pointer; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:8px; padding:9px 13px}
+.btn.main{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:500}
+.btn:disabled{opacity:.5; cursor:default}
+.btnrow{display:flex; flex-wrap:wrap; gap:8px}
+.next{display:flex; justify-content:flex-end}
+
+canvas{display:block; width:100%; border-radius:8px; background:#0b0f1e}
+.legend{display:grid; gap:4px; font-size:13px; color:var(--muted)}
+.legend .lg{display:flex; align-items:baseline; gap:7px}
+.legend .dot{width:9px; height:9px; border-radius:50%; background:#f2b92e; display:inline-block; flex:none}
+.legend .arr{color:#f2b92e; font-style:normal; font-weight:700; flex:none}
+.controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px 22px; align-items:end}
+.controls .btnrow{grid-column:1/-1}
+.ctl{display:grid; gap:2px; min-width:0}
+.ctl .row{display:flex; justify-content:space-between; gap:8px; font-size:13.5px}
+.ctl output{font-family:var(--font-m); font-weight:500}
+input[type=range]{width:100%; height:30px; accent-color:var(--accent); margin:2px 0}
+
+.readout{display:grid; gap:12px}
+.top{display:grid; grid-template-columns:auto 1fr; gap:6px 18px; align-items:center}
+.big{font-family:var(--font-m); font-weight:500; font-size:clamp(34px,9vw,46px); line-height:1; font-variant-numeric:tabular-nums; white-space:nowrap}
+.big small{font-size:.38em; margin-left:6px; color:var(--muted)}
+.biglabel{font-size:12px; color:var(--muted); margin-top:5px; max-width:26ch}
+.sentence{margin:0; font-size:15.5px; text-wrap:pretty; min-width:0}
+.sentence.ok{color:var(--accent); font-weight:600}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px}
+.stats div{background:var(--soft); border-radius:8px; padding:8px 10px; min-width:0}
+.stats span{display:block; font-size:12px; color:var(--muted)}
+.stats b{font-family:var(--font-m); font-weight:500; font-variant-numeric:tabular-nums; font-size:15px}
+@media (max-width:520px){ .top{grid-template-columns:1fr} }
+
+
+.tb{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--card); display:grid; gap:8px; scroll-margin-top:12px}
+.tb.mine{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
+.tb h3{margin:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.tb .bn{display:inline-grid; place-items:center; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font:600 13px var(--font-m)}
+.tb .used{font:500 12px var(--font-b); color:var(--accent); border:1px solid var(--accent); border-radius:99px; padding:1px 8px}
+.tb p{margin:0; font-size:16px; line-height:1.65; max-width:64ch; text-wrap:pretty}
+.lnk{justify-self:start; font:500 13px var(--font-b); color:var(--accent); background:none; border:0; border-bottom:1px dashed var(--accent); padding:2px 0; cursor:pointer; text-align:left}
+.stp{border:1px solid var(--line); border-radius:10px; padding:12px 14px; cursor:pointer; display:grid; gap:6px; background:var(--card)}
+.stp.ro{cursor:default}
+.stp .expl{margin:0; font-size:15px; line-height:1.6; text-wrap:pretty}
+.stp.on{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
+.stp .n{font-family:var(--font-m); font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+.stp ul{margin:0; padding-left:20px; display:grid; gap:5px}
+.stp li{font-size:14.5px}
+.stp li b{font-weight:600}
+.fx{font-family:var(--font-m); font-size:14px; background:var(--soft); border-radius:5px; padding:1px 6px}
+.count{font-family:var(--font-m); font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+.opts{display:grid; gap:8px}
+.opt{text-align:left; cursor:pointer; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-family:var(--font-m); font-size:15px}
+.opt.ok{border-color:var(--ok); box-shadow:inset 0 0 0 1px var(--ok)}
+.opt.bad{border-color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad)}
+.fb{font-size:15px; min-height:1.5em}
+.fb b.ok{color:var(--ok)} .fb b.bad{color:var(--bad)}
+</style>
+
+<main>
+  <header>
+    <div class="kicker">Física II · UT 14 · Guía 14</div>
+    <h1>Polarización de la luz</h1>
+  </header>
+
+  <div class="problems" id="problems"></div>
+
+  <section class="enun" id="enun">
+    <div class="lab" id="plab"></div>
+    <p id="full"></p>
+    <p class="note" id="pnote"></p>
+  </section>
+
+  <nav class="sections" id="sections" aria-label="Secciones"></nav>
+
+  <section class="sec" id="s-theory"><div class="panel prose" id="theory"></div></section>
+
+  <section class="sec" id="s-sim" hidden>
+    <div class="panel">
+      <p class="idea" id="idea"></p>
+      <canvas id="cv-sim" role="img" aria-label="Escena del ejercicio"></canvas>
+      <div class="legend" id="legend"></div>
+      <div class="controls" id="controls"></div>
+    </div>
+    <div class="panel readout" aria-live="polite">
+      <div class="top">
+        <div><div class="big" id="big"></div><div class="biglabel" id="biglabel"></div></div>
+        <p class="sentence" id="sentence"></p>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="panel">
+      <h2>Resolución paso a paso con tus datos</h2>
+      <p class="note">Estos pasos se recalculan cada vez que movés un control de arriba.</p>
+      <div class="sec" id="sim-steps"></div>
+    </div>
+    <div class="next" data-for="sim"></div>
+  </section>
+
+  <section class="sec" id="s-solve" hidden>
+    <div class="panel">
+      <h2>Cómo se resuelve</h2>
+      <p class="note">El dibujo muestra los datos del problema. Tocá un paso para ver de qué parte del dibujo habla.</p>
+      <canvas id="cv-solve" role="img" aria-label="Escena con los datos del problema"></canvas>
+    </div>
+    <div class="sec" id="solve-steps"></div>
+    <div class="next" data-for="solve"></div>
+  </section>
+
+  <section class="sec" id="s-life" hidden>
+    <div class="panel">
+      <div id="life-top" class="prose"></div>
+      <canvas id="cv-life" role="img" aria-label="Ilustración interactiva"></canvas>
+      <div class="controls" id="life-ctl"></div>
+      <p class="sentence" id="life-out"></p>
+      <div id="life-bot" class="prose"></div>
+    </div>
+    <div class="next" data-for="life"></div>
+  </section>
+
+  <section class="sec" id="s-check" hidden>
+    <div class="panel" id="check"></div>
+  </section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var rad=function(d){return d*Math.PI/180}, deg=function(r){return r*180/Math.PI};
+var fmt=function(x,d){ if(d==null)d=2; return x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+var cos2=function(d){var c=Math.cos(rad(d)); return c*c};
+var reduced=!!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+var MONO='"JetBrains Mono",ui-monospace,monospace', SANS='"Lexend",system-ui,sans-serif';
+
+/*PHYS_START*/
+function chain(axes,I0){
+  var out=[I0,I0/2];
+  for(var k=1;k<axes.length;k++) out.push(out[k]*cos2(axes[k]-axes[k-1]));
+  return out;
+}
+function angBetween(a,b){ var d=Math.abs(a-b)%180; return Math.min(d,180-d); }
+function fres(ti,n){
+  var a=rad(ti), sT=Math.sin(a)/n, cT=Math.sqrt(1-sT*sT), cI=Math.cos(a);
+  var rp=(n*cI-cT)/(n*cI+cT), rs=(cI-n*cT)/(cI+n*cT);
+  return {Rp:rp*rp, Rs:rs*rs, tt:deg(Math.asin(sT))};
+}
+function solveN(ti){
+  var a=rad(ti), s=Math.sin(a), c=Math.cos(a);
+  var f=function(n){return n*c-Math.sqrt(1-(s/n)*(s/n))};
+  var lo=1.0001, hi=5;
+  for(var i=0;i<80;i++){ var m=(lo+hi)/2; if(f(m)<0) lo=m; else hi=m; }
+  return (lo+hi)/2;
+}
+function mcStages(axes,N){
+  var probs=[]; for(var k=1;k<axes.length;k++) probs.push(cos2(axes[k]-axes[k-1]));
+  var c=new Array(axes.length).fill(0);
+  for(var i=0;i<N;i++){
+    if(Math.random()>=0.5) continue;
+    c[0]++;
+    for(var j=0;j<probs.length;j++){ if(Math.random()>=probs[j]) break; c[j+1]++; }
+  }
+  return c.map(function(v){return v/N});
+}
+/*PHYS_END*/
+
+var P7_I0=20, P8_OUT=75;
+function p8F(f){ return Math.max(0.01,0.5*cos2(f.a2)*cos2(f.a3-f.a2)); }
+function p8I0(f){ return P8_OUT/p8F(f); }
+var P8_I0=p8I0({a2:23,a3:62});
+var MATS=[{k:'Agua',n:1.33},{k:'Vidrio',n:1.50},{k:'Diamante',n:2.42}];
+function freshS(){ return {b:{ti:54.5,n:1.4}, f2:{a1:25,a2:62}, f3:{a2:23,a3:62,with2:true,extra:[]}}; }
+var S=freshS();
+var ui={prob:0, sec:'sim', step:0, back:null, life:[0,37,45],};
+
+function tr(t){ return t.indexOf(',')<0?t:t.replace(/,?0+$/,''); }
+function fn(v,d){ return tr(fmt(v,d)); }
+function fx(t){ return '<span class="fx">'+t+'</span>'; }
+function rnd(n){ return Math.floor(Math.random()*n); }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=rnd(i+1), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function ul(items){ return '<ul>'+items.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'; }
+var vI=function(v){return fmt(v, v>=100?1:2)};
+function tbRow(label,th,sim,d){ var e=Math.abs(sim-th)/th*100; return '<tr><td>'+label+'</td><td class="num">'+fmt(th,d)+'</td><td class="num">'+fmt(sim,d)+'</td><td class="num">'+fmt(e,3)+' %</td></tr>'; }
+function matLabel(n){ for(var i=0;i<MATS.length;i++) if(Math.abs(MATS[i].n-n)<0.004) return MATS[i].k; return 'Material'; }
+function tBof(n){ return deg(Math.atan(n)); }
+
+function spread(){
+  var s=S.f3, ex=s.extra, m=1+ex.length;
+  if(!ex.length && s.a3===62){ s.a2=23; return; }
+  s.a2=Math.round(s.a3/(m+1));
+  for(var i=0;i<ex.length;i++) ex[i]=Math.round(s.a3*(i+2)/(m+1));
+}
+function specOf(prob,src,over){
+  if(prob===0) return {kind:'b',ti:src.b.ti,n:src.b.n};
+  if(prob===1) return {kind:'f',I0:P7_I0,unit:'W/cm²',slots:[{axis:src.f2.a1,present:true},{axis:src.f2.a2,present:true}]};
+  var f=src.f3, w=(over&&over.with2!=null)?over.with2:f.with2;
+  var sl=[{axis:0,present:true},{axis:f.a2,present:w}];
+  f.extra.forEach(function(a){ sl.push({axis:a,present:true}); });
+  sl.push({axis:f.a3,present:true});
+  return {kind:'f',I0:p8I0(f),unit:'W/cm²',slots:sl};
+}
+
+/* ================= figuras de la teoría ================= */
+function arrow2(x1,y1,x2,y2,col,w){
+  var dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy), ux=dx/L, uy=dy/L, vx=-uy, vy=ux, h=7, s=3.4;
+  function head(x,y,sg){ var bx=x-sg*ux*h, by=y-sg*uy*h; return '<polygon points="'+x+','+y+' '+(bx+vx*s)+','+(by+vy*s)+' '+(bx-vx*s)+','+(by-vy*s)+'" fill="'+col+'"/>'; }
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="'+(w||2.4)+'" stroke-linecap="round"/>'+head(x2,y2,1)+head(x1,y1,-1);
+}
+function figLight(){
+  var g='', cx=85, cy=56, i, a, L=34;
+  for(i=0;i<6;i++){ a=rad(i*30); g+=arrow2(+(cx-Math.sin(a)*L).toFixed(1),+(cy-Math.cos(a)*L).toFixed(1),+(cx+Math.sin(a)*L).toFixed(1),+(cy+Math.cos(a)*L).toFixed(1),'var(--amber)',2); }
+  return '<figure class="fig"><svg viewBox="0 0 340 120" role="img" aria-label="Luz natural: vibra en todas las direcciones. Luz polarizada: vibra en una sola.">'+g+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="var(--ink)"/>'+arrow2(255,18,255,94,'var(--amber)',2.6)+'<circle cx="255" cy="56" r="3.5" fill="var(--ink)"/>'+
+    '<text x="85" y="112" text-anchor="middle">Luz natural</text><text x="255" y="112" text-anchor="middle">Luz polarizada</text></svg>'+
+    '<figcaption>Cada flecha es una dirección de vibración, vista de frente (la luz viene hacia vos). La luz natural las tiene todas; la polarizada, una sola.</figcaption></figure>';
+}
+function grille(x,y,w,h){
+  var s='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>';
+  for(var i=0;i<6;i++){ s+='<rect x="'+(x+10+i*((w-28)/5))+'" y="'+(y+6)+'" width="8" height="'+(h-12)+'" rx="2" fill="var(--accent)" opacity=".85"/>'; }
+  return s;
+}
+function figGrille(){
+  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="Un filtro es como una reja: pasa la vibración que va a lo largo de las ranuras y frena la que las cruza.">'+
+    grille(20,14,130,82)+arrow2(85,22,85,88,'var(--ok)',3)+
+    grille(190,14,130,82)+arrow2(198,55,312,55,'var(--bad)',3)+
+    '<text x="85" y="116" text-anchor="middle">Vibra a lo largo: pasa</text><text x="255" y="116" text-anchor="middle">Vibra cruzando: se frena</text></svg>'+
+    '<figcaption>Las barras azules son la reja del filtro. Las ranuras entre barras definen el eje.</figcaption></figure>';
+}
+
+
+function figTipos(){
+  var e='';
+  e+=arrow2(50,18,50,94,'var(--amber)',2.6)+'<circle cx="50" cy="56" r="3" fill="var(--ink)"/>';
+  e+='<circle cx="170" cy="56" r="34" fill="none" stroke="var(--amber)" stroke-width="2.6"/><polygon points="204,56 198,48 190,56" fill="var(--amber)" transform="rotate(8 170 56)"/>';
+  e+='<ellipse cx="290" cy="56" rx="40" ry="22" transform="rotate(-30 290 56)" fill="none" stroke="var(--amber)" stroke-width="2.6"/>';
+  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="Tres tipos: lineal (una recta), circular (un círculo) y elíptica (una elipse)">'+e+
+    '<text x="50" y="118" text-anchor="middle">Lineal</text><text x="170" y="118" text-anchor="middle">Circular</text><text x="290" y="118" text-anchor="middle">Elíptica</text></svg>'+
+    '<figcaption>Es la figura que dibuja la punta del vector E, vista de frente.</figcaption></figure>';
+}
+function figMalus(){
+  var ox=110, oy=104, L=84, a=rad(35), ex=ox+L*Math.sin(a), ey=oy-L*Math.cos(a);
+  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="El vector E que llega se descompone en una parte a lo largo del eje, que pasa, y otra perpendicular, que se frena.">'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+ox+'" y2="14" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+ex.toFixed(1)+'" y2="'+ey.toFixed(1)+'" stroke="var(--amber)" stroke-width="3" stroke-linecap="round"/>'+
+    '<line x1="'+ox+'" y1="'+ey.toFixed(1)+'" x2="'+ex.toFixed(1)+'" y2="'+ey.toFixed(1)+'" stroke="var(--line)" stroke-dasharray="3 3"/>'+
+    '<line x1="'+ex.toFixed(1)+'" y1="'+oy+'" x2="'+ex.toFixed(1)+'" y2="'+ey.toFixed(1)+'" stroke="var(--line)" stroke-dasharray="3 3"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+ox+'" y2="'+ey.toFixed(1)+'" stroke="var(--ok)" stroke-width="3" stroke-linecap="round"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+ex.toFixed(1)+'" y2="'+oy+'" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>'+
+    '<text x="'+(ox-6)+'" y="22" text-anchor="end">eje del filtro</text><text x="'+(ex+8).toFixed(1)+'" y="'+(ey+4).toFixed(1)+'">E que llega</text>'+
+    '<text x="'+(ox-8)+'" y="'+((oy+ey)/2+4).toFixed(1)+'" text-anchor="end">pasa: E·cos θ</text>'+
+    '<text x="'+(ox+L*0.3).toFixed(1)+'" y="'+(oy+16)+'">se frena: E·sen θ</text>'+
+    '<path d="M'+ox+' '+(oy-26)+' A26 26 0 0 1 '+(ox+26*Math.sin(a)).toFixed(1)+' '+(oy-26*Math.cos(a)).toFixed(1)+'" fill="none" stroke="var(--ink)"/><text x="'+(ox+14)+'" y="'+(oy-30)+'">θ</text></svg>'+
+    '<figcaption>El filtro se queda con la parte de E que va a lo largo de su eje. Como la intensidad es E², pasa cos²θ.</figcaption></figure>';
+}
+function figRefl(){
+  var ox=170, oy=78, i, mk='', dI=[-0.58,-0.82], dR=[0.58,-0.82];
+  function dot(d,k){ return '<circle cx="'+(ox+d[0]*k).toFixed(1)+'" cy="'+(oy+d[1]*k).toFixed(1)+'" r="3.2" fill="var(--ink)"/>'; }
+  function arr(d,k){ var p=[-d[1],d[0]], cx=ox+d[0]*k, cy=oy+d[1]*k; return arrow2((cx-p[0]*9).toFixed(1),(cy-p[1]*9).toFixed(1),(cx+p[0]*9).toFixed(1),(cy+p[1]*9).toFixed(1),'var(--accent)',1.8); }
+  /* incidente: mitad puntos, mitad flechas (luz natural) */
+  mk+=dot(dI,26)+arr(dI,40)+dot(dI,54)+arr(dI,68);
+  /* reflejado: casi todo puntos, una flecha */
+  mk+=dot(dR,22)+dot(dR,36)+dot(dR,50)+arr(dR,64);
+  /* refractado: algo de cada */
+  var dT=[0.34,0.94]; mk+=dot(dT,22)+arr(dT,40);
+  return '<figure class="fig"><svg viewBox="0 -18 340 168" role="img" aria-label="Al reflejarse, la vibración paralela a la superficie (puntos) se refleja más que la otra (flechas).">'+
+    '<rect x="10" y="'+oy+'" width="320" height="64" fill="var(--soft)" stroke="none"/><line x1="10" y1="'+oy+'" x2="330" y2="'+oy+'" stroke="var(--ink)" stroke-width="1.6"/>'+
+    '<line x1="'+ox+'" y1="'+(oy-70)+'" x2="'+ox+'" y2="'+(oy+55)+'" stroke="var(--line)" stroke-dasharray="4 4"/>'+
+    '<line x1="'+(ox-58)+'" y1="'+(oy-82)+'" x2="'+ox+'" y2="'+oy+'" stroke="var(--amber)" stroke-width="2.2"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+(ox+58)+'" y2="'+(oy-82)+'" stroke="var(--amber)" stroke-width="2.2"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+(ox+34)+'" y2="'+(oy+52)+'" stroke="var(--amber)" stroke-width="1.6" opacity=".7"/>'+
+    mk+
+    '<text x="'+(ox-66)+'" y="'+(oy-70)+'" text-anchor="end">incidente (natural)</text><text x="'+(ox+66)+'" y="'+(oy-76)+'">reflejado</text><text x="'+(ox+66)+'" y="'+(oy-62)+'">(casi todo puntos)</text>'+
+    '<text x="'+(ox+44)+'" y="'+(oy+60)+'">refractado</text><text x="16" y="'+(oy+14)+'">superficie</text></svg>'+
+    '<figcaption>Vista de costado. Punto: vibra perpendicular al papel, o sea paralela a la superficie. Flecha: vibra dentro del papel. En el rayo reflejado casi no quedan flechas.</figcaption></figure>';
+}
+function figBrew(){
+  var ox=170, oy=78, L=72, t=rad(56), u=rad(34);
+  var ix=ox-L*Math.sin(t), iy=oy-L*Math.cos(t), rx=ox+L*Math.sin(t), ry=oy-L*Math.cos(t), tx=ox+L*Math.sin(u), ty=oy+L*Math.cos(u);
+  return '<figure class="fig"><svg viewBox="0 0 340 170" role="img" aria-label="En el ángulo de polarización el rayo reflejado y el refractado forman 90°.">'+
+    '<rect x="10" y="'+oy+'" width="320" height="86" fill="var(--soft)"/><line x1="10" y1="'+oy+'" x2="330" y2="'+oy+'" stroke="var(--ink)" stroke-width="1.6"/>'+
+    '<line x1="'+ox+'" y1="'+(oy-72)+'" x2="'+ox+'" y2="'+(oy+80)+'" stroke="var(--line)" stroke-dasharray="4 4"/>'+
+    '<line x1="'+ix.toFixed(1)+'" y1="'+iy.toFixed(1)+'" x2="'+ox+'" y2="'+oy+'" stroke="var(--amber)" stroke-width="2.4"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+rx.toFixed(1)+'" y2="'+ry.toFixed(1)+'" stroke="var(--amber)" stroke-width="2.4"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+tx.toFixed(1)+'" y2="'+ty.toFixed(1)+'" stroke="var(--amber)" stroke-width="2.4"/>'+
+    '<path d="M'+(ox+26*Math.cos(u)).toFixed(1)+' '+(oy-26*Math.sin(u)).toFixed(1)+' A26 26 0 0 1 '+(ox+26*Math.cos(t)).toFixed(1)+' '+(oy+26*Math.sin(t)).toFixed(1)+'" fill="none" stroke="var(--ok)" stroke-width="2"/>'+
+    '<text x="'+(ox+30)+'" y="'+(oy-6)+'" fill="var(--ok)" style="fill:var(--ok);font-weight:600">90°</text>'+
+    '<text x="'+(ox-30)+'" y="'+(oy-30)+'" text-anchor="end">θp</text><text x="'+(ox+22)+'" y="'+(oy-48)+'">θp</text><text x="'+(ox-8)+'" y="'+(oy+44)+'" text-anchor="end">θr</text>'+
+    '<text x="'+(ix-4).toFixed(1)+'" y="'+(iy-4).toFixed(1)+'" text-anchor="end">incidente</text><text x="'+(rx+4).toFixed(1)+'" y="'+(ry-4).toFixed(1)+'">reflejado</text><text x="'+(tx+6).toFixed(1)+'" y="'+(ty).toFixed(1)+'">refractado</text></svg>'+
+    '<figcaption>Dibujo con vidrio (n = 1,5). Todos los ángulos se miden desde la normal (línea punteada).</figcaption></figure>';
+}
+var THEORY=[
+ {h:'¿Qué es la polarización?', p:['Es la dirección en que vibra el campo eléctrico de la luz. <b>La luz es una onda electromagnética y vibra perpendicular a la dirección en que avanza.</b>']},
+ {h:'Luz natural y luz polarizada', p:['La luz natural vibra en todas las direcciones; <b>la polarizada vibra en una sola</b>. El sol y las lámparas emiten muchas ondas a la vez, cada una vibrando distinto.'], fig:figLight},
+ {h:'Tipos de polarización', p:['Si la punta del vector E dibuja una recta, la luz es <b>lineal</b>; si dibuja un círculo, <b>circular</b>; si dibuja una elipse, <b>elíptica</b>. <b>En los problemas de esta guía solo aparece la lineal.</b>'], fig:figTipos},
+ {h:'Cómo se obtiene luz polarizada', p:['Hay cinco formas: emisión selectiva (antenas), absorción selectiva (filtros), reflexión, dispersión (la luz del cielo) y doble refracción (cristales como la calcita). <b>Los problemas usan dos: los filtros (problemas 7 y 8) y la reflexión (problema 2).</b>']},
+ {h:'El filtro polarizador', p:['Deja pasar la vibración paralela a su <b>eje de transmisión</b> y frena la perpendicular. <b>Con luz natural pasa la mitad: I₁ = I₀ / 2.</b> En una pila de filtros, el primero se llama polarizador y el segundo, analizador.'], fig:figGrille},
+ {h:'Ley de Malus', p:['Cuando luz ya polarizada llega a otro filtro, pasa <b>I = I_máx · cos²θ</b>. θ es el ángulo <i>entre los ejes</i> de los dos filtros. Con ejes paralelos (0°) pasa todo; con ejes cruzados (90°), nada.'], fig:figMalus},
+ {h:'Polarización por reflexión', p:['Al reflejarse en una superficie (agua, vidrio, nieve) se refleja más la vibración paralela a la superficie (los puntos del dibujo) que la otra (las flechas). <b>El reflejo queda parcialmente polarizado.</b> Por eso el brillo del agua o de la nieve es muy “horizontal”.'], fig:figRefl},
+ {h:'Ángulo de polarización θp (Brewster)', p:['Para un ángulo de incidencia especial, el rayo reflejado y el refractado forman 90° y <b>el reflejado queda totalmente polarizado</b>. Ese ángulo cumple <b>tan θp = n₂ / n₁</b>; sale de θp + 90° + θr = 180° y de la ley de Snell. Con aire, tan θp = n: agua ≈ 53°, vidrio ≈ 56°. El rayo refractado solo queda parcialmente polarizado.'], fig:figBrew},
+ {h:'Dónde lo vemos', p:['Anteojos de sol polarizados, pantallas de celulares y notebooks, cine 3D. Más ejemplos en “En la vida real”.']}
+];
+
+/* ================= problemas ================= */
+
+var PROBS=[
+/* ---------------- Problema 2 ---------------- */
+{ tab:'Problema 2', sub:'Luz en el vidrio',
+  ask:'La luz natural llega al vidrio a 54,5° y lo que se refleja sale totalmente polarizado. ¿Cuánto vale el n del vidrio y a qué ángulo sigue el rayo que entra?',
+  full:'Un haz paralelo de luz no polarizada en aire incide a un ángulo de 54,5° (respecto a la normal) sobre una superficie plana de vidrio. El haz reflejado está linealmente polarizado en su totalidad. a) ¿Cuál es el índice de refracción del vidrio? b) ¿Cuál es el ángulo de refracción del haz transmitido?',
+  idea:'<b>Idea clave:</b> con un ángulo especial, la luz que rebota en el vidrio vibra en una sola dirección.',
+  legend:'<span class="lg"><i class="dot"></i><span>Punto: la luz vibra saliendo del papel (hacia vos). Es la vibración “acostada” sobre el vidrio.</span></span><span class="lg"><i class="arr">↕</i><span>Flecha: la luz vibra dentro del papel.</span></span><span class="lg"><span>El número del arco es el ángulo entre el rayo reflejado y el que entra al vidrio. La línea punteada marca el ángulo de Brewster para el n elegido.</span></span>',
+  use:[7,8],
+  controls:function(){ return [
+    {id:'ti',label:'Ángulo de incidencia',min:0,max:90,step:0.5,unit:'°',d:1,get:function(){return S.b.ti},set:function(v){S.b.ti=v}},
+    {id:'n',label:'Índice del material (n)',min:1.1,max:2.5,step:0.01,unit:'',d:2,get:function(){return S.b.n},set:function(v){S.b.n=v}} ]; },
+  extra:function(box){
+    MATS.forEach(function(m){
+      var b=document.createElement('button'); b.className='btn'; b.textContent=m.k+' (n = '+fmt(m.n,2)+')';
+      b.onclick=function(){ S.b.n=m.n; S.b.ti=tBof(m.n); syncControls(); };
+      box.appendChild(b);
+    });
+    var b2=document.createElement('button'); b2.className='btn main'; b2.textContent='Llevar al ángulo de Brewster';
+    b2.onclick=function(){ S.b.ti=tBof(S.b.n); syncControls(); };
+    box.appendChild(b2);
+  },
+  reset:function(){ S.b=freshS().b; },
+  readout:function(){
+    var ti=S.b.ti, n=S.b.n, f=fres(ti,n), tB=tBof(n);
+    var pol=(f.Rs+f.Rp)>1e-9 ? (f.Rs-f.Rp)/(f.Rs+f.Rp)*100 : 0;
+    var near=Math.abs(ti-tB)<0.35, between=180-ti-f.tt, s;
+    if(near) s='Ahora la luz reflejada vibra en una sola dirección: quedan solo los puntos. Fijate que el rayo reflejado y el que entra forman 90°.';
+    else if(ti<tB) s='Todavía se reflejan las flechas. Subí el ángulo hasta la línea punteada (Brewster) y van a desaparecer.';
+    else s='Te pasaste del ángulo de Brewster: las flechas vuelven a aparecer. Bajá el ángulo hasta la línea punteada.';
+    return {big:fmt(pol,0), unit:'%', label:'de la luz reflejada está polarizada', sentence:s, ok:near,
+      stats:[['Ángulo de Brewster para este n',fmt(tB,1)+'°'],['Ángulo del rayo que entra',fmt(f.tt,1)+'°'],['Entre reflejado y refractado',fmt(between,1)+'°']]};
+  },
+  steps:function(src,mode){
+    if(mode==='sim'){
+      var ti=src.b.ti, n=src.b.n, f=fres(ti,n), tB=tBof(n), mn=matLabel(n), tt=f.tt, ent=180-ti-tt, d=Math.abs(ti-tB);
+      var pol=(f.Rs+f.Rp)>1e-9?(f.Rs-f.Rp)/(f.Rs+f.Rp)*100:0, near=d<0.35;
+      return [
+      {t:'Datos e incógnitas', th:7, i:[
+        ['Datos','n₁ = 1 (índice de refracción del aire, de donde viene la luz); n₂ = '+fmt(n,2)+' ('+(mn==='Material'?'material elegido':mn)+'); θi = '+fn(ti,1)+'°, el ángulo con que la luz incide sobre la superficie.'],
+        ['Incógnitas','θp (el ángulo de polarización de este material), θr (el ángulo del rayo refractado, el que entra al material) y cuánto queda polarizado el rayo reflejado (el que rebota).']]},
+      {t:'Calcular el ángulo de polarización θp', th:8, i:[
+        ['Explicación','Conocemos los índices de los dos medios (n₁ = 1 y n₂ = '+fmt(n,2)+') y queremos saber con qué ángulo de incidencia, θp, el rayo reflejado queda totalmente polarizado. Para eso usamos la condición del ángulo de polarización: solo depende de los índices, y cuanto mayor es n₂, mayor es θp. Despejando θp (con arctan, la función inversa de tan) y reemplazando los valores obtenemos θp = '+fn(tB,4)+'°.'],
+        ['Fórmula',fx('tan θp = n₂ / n₁  ⇒  θp = arctan(n₂ / n₁)')],
+        ['Cálculos','θp = arctan('+fmt(n,2)+' / 1) = '+fn(tB,4)+'°']]},
+      {t:'Comparar θi con θp', th:8, i:[
+        ['Explicación','Queremos ver cuánto queda polarizado el rayo reflejado con el ángulo que elegiste. Para eso comparamos θi con θp: si coinciden, el reflejado queda totalmente polarizado; si no, solo parcialmente. Con los valores actuales, θi = '+fn(ti,1)+'° y θp = '+fn(tB,4)+'°'+(near?': coinciden.':': difieren en '+fn(d,4)+'°.')],
+        ['Resultado',near?'El rayo reflejado queda totalmente polarizado.':'El rayo reflejado queda parcialmente polarizado ('+fn(pol,0)+' %).']]},
+      {t:'Calcular el ángulo de refracción θr', th:8, i:[
+        ['Explicación','Con θi y los dos índices queremos hallar θr, el ángulo del rayo refractado (el que entra al material). Usamos la ley de Snell, que dice cuánto se desvía la luz al entrar al material: si n₂ es mayor que n₁, el rayo se acerca a la normal. Despejando θr (con arcsen, la función inversa de sen) y reemplazando los valores obtenemos θr = '+fn(tt,4)+'°.'],
+        ['Fórmula',fx('n₁ · sen θi = n₂ · sen θr  ⇒  θr = arcsen(n₁ · sen θi / n₂)')],
+        ['Cálculos','θr = arcsen(1 · sen '+fn(ti,1)+'° / '+fmt(n,2)+') = '+fn(tt,4)+'°']]},
+      {t:'Ángulo entre el rayo reflejado y el refractado', th:8, i:[
+        ['Explicación','Queremos saber qué ángulo forman el rayo reflejado (el que rebota) y el refractado (el que entra). Los dos se miden desde la normal: el reflejado a θi hacia arriba y el refractado a θr hacia abajo, así que el ángulo entre ellos es lo que falta para completar 180°. Reemplazando los valores obtenemos '+fn(ent,4)+'°'+(near?', que es 90°, como pide la condición del ángulo de polarización.':'.')],
+        ['Fórmula',fx('180° − θi − θr')],
+        ['Cálculos','180° − '+fn(ti,1)+'° − '+fn(tt,4)+'° = '+fn(ent,4)+'°']]},
+      {t:'Respuesta', i:[
+        ['Respuesta','Con θi = '+fn(ti,1)+'° y n₂ = '+fmt(n,2)+', el rayo refractado forma un ángulo θr = '+fn(tt,4)+'° con la normal, el ángulo de polarización es θp = '+fn(tB,4)+'° y el '+fn(pol,0)+' % de la luz reflejada está polarizada.']]} ];
+    }
+    var th=54.5, n0=Math.tan(rad(th)), tr0=deg(Math.asin(Math.sin(rad(th))/n0));
+    return [
+    {t:'Datos e incógnitas', th:7, f:['inc','ref'], i:[
+      ['Datos','n₁ = 1 (índice de refracción del aire); θi = 54,5°, el ángulo con que la luz incide sobre el vidrio. Como el rayo reflejado queda totalmente polarizado, ese ángulo es el ángulo de polarización: θi = θp.'],
+      ['Incógnitas','n₂ (índice de refracción del vidrio) y θr, el ángulo del rayo refractado, el que entra al vidrio.']]},
+    {t:'Calcular el índice de refracción del vidrio (a)', th:8, f:['ref','inc'], i:[
+      ['Explicación','Sabemos que el rayo reflejado queda totalmente polarizado, así que θp = 54,5°, y que la luz viene del aire (n₁ = 1). Nos falta el índice de refracción del vidrio, n₂. Para encontrarlo usamos la condición del ángulo de polarización, que dice con qué ángulo de incidencia el reflejado queda totalmente polarizado y solo depende de los índices de los dos medios (n₁ es el del medio de donde viene la luz y n₂ el del medio donde entra). Despejando n₂ y reemplazando los valores obtenemos n₂ = '+fn(n0,4)+'.'],
+      ['Fórmula',fx('tan θp = n₂ / n₁  ⇒  n₂ = n₁ · tan θp')],
+      ['Cálculos','n₂ = 1 · tan 54,5° = '+fn(n0,4)]]},
+    {t:'Calcular el ángulo de refracción θr (b)', th:8, f:['inc','tra'], i:[
+      ['Explicación','Con n₁ = 1, n₂ = '+fn(n0,4)+' y el ángulo de incidencia θp = 54,5° queremos hallar θr, el ángulo del rayo refractado (el que entra al vidrio). Usamos la ley de Snell, que dice cuánto se desvía la luz al pasar de un medio al otro. Despejando θr (con arcsen, la función inversa de sen) y reemplazando los valores obtenemos θr = '+fn(tr0,4)+'°. Como comprobación, en el ángulo de polarización el rayo reflejado y el refractado forman 90°, así que θr tiene que ser 90° − 54,5° = 35,5°, y lo es.'],
+      ['Fórmula',fx('n₁ · sen θp = n₂ · sen θr  ⇒  θr = arcsen(n₁ · sen θp / n₂)')],
+      ['Cálculos','θr = arcsen(1 · sen 54,5° / '+fn(n0,4)+') = '+fn(tr0,4)+'°']]},
+    {t:'Respuesta', f:[], i:[
+      ['Respuesta','El índice de refracción del vidrio es n₂ ≈ '+fn(n0,4)+' y el rayo refractado forma un ángulo θr = '+fn(tr0,4)+'° con la normal.']]} ]; },
+  life:{
+    top:'<h2>Anteojos polarizados contra el reflejo</h2><p>El reflejo del agua llega con mucha luz acostada: está casi toda polarizada en horizontal, sobre todo cuando lo mirás cerca del ángulo de Brewster (unos 53° para el agua). Los anteojos polarizados tienen su eje en vertical, así que dejan pasar la luz parada y frenan la acostada. El reflejo se apaga y aparece lo que hay bajo el agua.</p><p>A la izquierda ves el lago sin anteojos; a la derecha, a través de un lente polarizado. Girá el lente y mirá qué pasa con el reflejo.</p>',
+    label:'Giro del lente', min:0, max:90, hint:'0° es como usás los anteojos, derechos. 90° es con el lente de costado.',
+    draw:function(g,v){ drawLake(g,v); },
+    out:function(v){ var t=Math.pow(Math.sin(rad(v)),2); return 'Pasa el <b>'+fmt(t*100,0)+' %</b> del reflejo (cos² de '+fmt(90-v,0)+'°, el ángulo entre el lente y la vibración acostada).'; },
+    bot:'<p>Con el lente derecho, el ángulo entre su eje y la vibración del reflejo es de 90° y Malus da cero: el reflejo se bloquea. Girando el lente, deja pasar más. Es lo mismo que el problema 7, con el reflejo haciendo de primer filtro.</p><p class="note">Dibujo ilustrativo, no es una foto. Probalo con tus anteojos: mirá un charco o una vidriera, inclinás la cabeza hacia un costado y el reflejo cambia.</p>'},
+  table:function(){ var a=54.5, ns=solveN(a), tts=deg(Math.asin(Math.sin(rad(a))/ns));
+    return {rows:tbRow('Índice n del vidrio',1.40,ns,3)+tbRow('Ángulo de refracción θr (°)',35.55,tts,2),
+      note:'Cátedra: resolución de la Guía. Simulador: el n sale de buscar el valor que apaga la reflexión de la vibración “flecha” (ecuaciones de Fresnel). La cátedra redondea n a 1,40 antes de calcular θr y escribe 35,55° (con n = 1,40 el valor es 35,557°); el simulador usa n sin redondear, por eso da 35,50°.'}; }
+},
+/* ---------------- Problema 7 ---------------- */
+{ tab:'Problema 7', sub:'Dos filtros',
+  ask:'Una luz de 20 W/cm² pasa por dos filtros polarizadores con ejes a 25° y a 62°. ¿Cuánta luz sale del segundo?',
+  full:'La luz no polarizada con una intensidad de 20,0 W/cm² incide en dos filtros polarizadores. El eje del primer filtro está a un ángulo de 25,0° de la vertical en sentido contrario a las manecillas del reloj (visto en la dirección de propagación de la luz) y el eje del segundo está a un ángulo de 62,0° de la vertical en ese mismo sentido. ¿Cuál es la intensidad de la luz después que ha pasado a través del segundo polarizador?',
+  note:'En la Guía el dato figura como 20,0 W/m²; la resolución de la cátedra usa W/cm², y esa es la unidad que seguimos.',
+  idea:'<b>Idea clave:</b> un filtro deja pasar una sola dirección de vibración. Si el segundo está inclinado, pasa solo una parte.',
+  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial: la línea celeste marca la dirección que deja pasar (0° = vertical). Los números de abajo son la intensidad en cada tramo.</span></span>',
+  use:[5,6],
+  controls:function(){ return [
+    {id:'a1',label:'Eje del 1.er filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f2.a1},set:function(v){S.f2.a1=v}},
+    {id:'a2',label:'Eje del 2.º filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f2.a2},set:function(v){S.f2.a2=v}} ]; },
+  reset:function(){ S.f2=freshS().f2; },
+  readout:function(){
+    var a1=S.f2.a1, a2=S.f2.a2, ints=chain([a1,a2],P7_I0), d=angBetween(a1,a2), s;
+    if(Math.abs(d-90)<0.5) s='Los ejes están cruzados (90°): no pasa nada de luz.';
+    else if(d<0.5) s='Los ejes son paralelos: el 2.º filtro deja pasar todo lo que dejó pasar el 1.º.';
+    else s='Entre los dos ejes hay '+fmt(d,0)+'°, así que pasa el '+fmt(cos2(d)*100,1)+' % de lo que dejó pasar el primero.';
+    return {big:fmt(ints[2],2), unit:'W/cm²', label:'sale del 2.º filtro', sentence:s,
+      stats:[['Entra',fmt(P7_I0,1)+' W/cm²'],['Sale del 1.º',fmt(ints[1],2)+' W/cm²'],['Ángulo entre ejes',fmt(d,0)+'°']]};
+  },
+  steps:function(src,mode){
+    var a1=src.f2.a1, a2=src.f2.a2, I0=P7_I0, I1=I0/2, d=angBetween(a1,a2), I2=I1*cos2(d);
+    return [
+    {t:'Datos e incógnitas', th:5, f:['src'], i:[
+      ['Datos','I₀ = '+fn(I0,1)+' W/cm² (intensidad inicial: la luz natural, no polarizada, antes del primer filtro). θ₁ = '+fn(a1,0)+'° y θ₂ = '+fn(a2,0)+'°: ángulos de los ejes del primer y segundo filtro, medidos desde la vertical.'],
+      ['Incógnita','I₂, la intensidad final: la luz que sale del segundo filtro.']]},
+    {t:'Primer filtro', th:5, f:[0], i:[
+      ['Explicación','Entra luz natural con I₀ = '+fn(I0,1)+' W/cm² y queremos saber cuánta sale del primer filtro, I₁. Un filtro polarizador deja pasar la mitad de la luz natural, y esa luz sale polarizada en la dirección de su eje. Por eso usamos I₁ = I₀ / 2 y, reemplazando los valores, obtenemos I₁ = '+fn(I1,4)+' W/cm².'],
+      ['Fórmula',fx('I₁ = I₀ / 2')],
+      ['Cálculos','I₁ = '+fn(I0,1)+' / 2 = '+fn(I1,4)+' W/cm²']]},
+    {t:'Ángulo entre los ejes', th:6, f:[0,1], i:[
+      ['Explicación','Para aplicar la ley de Malus necesitamos el ángulo entre los ejes de los dos filtros, Δθ. Es la diferencia entre θ₂ y θ₁: solo importa esa diferencia, no los ángulos medidos desde la vertical. Reemplazando los valores obtenemos Δθ = '+fn(d,0)+'°.'],
+      ['Fórmula',fx('Δθ = |θ₂ − θ₁|')],
+      ['Cálculos','Δθ = |'+fn(a2,0)+'° − '+fn(a1,0)+'°| = '+fn(d,0)+'°']]},
+    {t:'Segundo filtro (ley de Malus)', th:6, f:[1,'out'], i:[
+      ['Explicación','Ahora conocemos I₁, la luz polarizada que llega al segundo filtro, y el ángulo Δθ entre los ejes. Queremos hallar I₂, la intensidad final. Usamos la ley de Malus: de la luz polarizada que llega pasa la parte que va en la dirección del eje del segundo filtro, que es cos²Δθ (con 0° pasa todo y con 90° no pasa nada). Reemplazando los valores obtenemos I₂ = '+fn(I2,4)+' W/cm².'],
+      ['Fórmula',fx('I₂ = I₁ · cos²Δθ')],
+      ['Cálculos','I₂ = I₁ · cos²Δθ = '+fn(I1,4)+' · cos²('+fn(d,0)+'°) = '+fn(I2,4)+' W/cm²']]},
+    {t:'Respuesta', f:['out'], i:[
+      ['Respuesta','La intensidad de la luz que sale del segundo filtro es I₂ ≈ '+fn(I2,4)+' W/cm² (equivale a '+fn(I2*1e4,4)+' W/m²), el '+fn(I2/I0*100,1)+' % de la luz que entró.']]} ]; },
+  life:{
+    top:'<h2>Dos lentes polarizados superpuestos</h2><p>Imaginá dos lentes de anteojos polarizados apoyados uno sobre otro, frente a una ventana. Cada lente solo deja pasar la mitad de la luz (50 %), como el primer filtro del problema. Donde se superponen, pasa el 50 % multiplicado por cos² del ángulo entre sus ejes.</p><p>El lente 1 tiene el eje vertical. Girá el lente 2 y mirá cómo se oscurece la zona del medio.</p>',
+    label:'Giro del lente 2', min:0, max:90, hint:'En el problema, la diferencia entre ejes es de 37°.',
+    draw:function(g,v){ drawLenses2(g,v); },
+    out:function(v){ var t=50*cos2(v); return 'En la zona superpuesta pasa el <b>'+fmt(t,1)+' %</b> de la luz. Con 20 W/cm² de entrada serían <b>'+fmt(t*0.2,2)+' W/cm²</b>.'; },
+    bot:'<p>A 0° los lentes son paralelos y la zona del medio queda igual que un lente solo. A 90° quedan cruzados y la zona se vuelve negra. Con 37° obtenés el resultado del problema: 6,38 W/cm².</p><p class="note">Pasa algo parecido con la pantalla del celular o de la notebook: muchas emiten luz ya polarizada. Si las mirás con anteojos polarizados y girás el celular, se oscurece y se aclara. No todos los anteojos de sol son polarizados.</p>'},
+  table:function(){ var I2=chain([25,62],P7_I0)[2]*1e4;
+    return {rows:tbRow('I₂, intensidad final (W/m²)',63781.86,I2,2),
+      note:'Cátedra: resolución de la Guía (I₀ = 20 W/cm², resultado en W/m²). Simulador: la misma cadena de filtros calculada con los datos del problema. Coinciden hasta el redondeo.'}; }
+},
+/* ---------------- Problema 8 ---------------- */
+{ tab:'Problema 8', sub:'Tres filtros',
+  ask:'Con tres filtros apilados salen 75 W/cm². Si sacás el del medio y entra la misma luz, ¿cuánta sale?',
+  full:'Se tienen tres filtros polarizadores apilados, con el eje de polarización de los filtros segundo y tercero a 23,0° y 62,0°, respecto al del primero. Si incide luz no polarizada en la pila, la luz tiene una intensidad de 75,0 W/cm² después de atravesar la pila. Si se mantiene constante la intensidad incidente, ¿cuál es la intensidad de la luz después de pasar a través de la pila si se quita el segundo polarizador?',
+  idea:'<b>Idea clave:</b> los filtros pueden girar la vibración de a poco. Con un filtro en el medio puede pasar más luz, no menos.',
+  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial: la línea celeste marca la dirección que deja pasar (0° = vertical). Los números de abajo son la intensidad en cada tramo.</span></span>',
+  use:[5,6],
+  controls:function(){ return [
+    {id:'a2',label:'Eje del 2.º filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f3.a2},set:function(v){S.f3.a2=v}}
+    ].concat(S.f3.extra.map(function(a,i){ return {id:'x'+i,label:'Eje del '+(i+3)+'.º filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f3.extra[i]},set:function(v){S.f3.extra[i]=v}}; }),[
+    {id:'a3',label:'Eje del '+(S.f3.extra.length===0?'3.er':(S.f3.extra.length+3)+'.º')+' filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f3.a3},set:function(v){S.f3.a3=v}} ]); },
+  extra:function(box){
+    var b=document.createElement('button'); b.className='btn main'; b.id='toggle2';
+    b.onclick=function(){ S.f3.with2=!S.f3.with2; syncControls(); };
+    box.appendChild(b);
+  },
+  reset:function(){ S.f3=freshS().f3; },
+  readout:function(){
+    var s3=S.f3, I0=p8I0(s3), ca=chain([0,s3.a2].concat(s3.extra,[s3.a3]),I0), cb=chain([0].concat(s3.extra,[s3.a3]),I0), solo=chain([0,s3.a3],I0)[2], withAll=ca[ca.length-1], without=cb[cb.length-1], out=s3.with2?withAll:without, s;
+    if(out<0.05) s='No sale luz: hay dos filtros seguidos con los ejes cruzados (90°).';
+    else if(s3.extra.length&&s3.with2) s='Salen '+fmt(out,1)+' W/cm²; con solo el 1.º y el último saldrían '+fmt(solo,1)+'.'+(out>solo?' Los filtros del medio van girando la vibración de a poco y dejan pasar más.':' Con estos ejes los del medio no ayudan: probá repartirlos más parejo.');
+    else if(s3.with2) s='Entran '+fmt(I0,1)+' W/cm² y salen '+fmt(out,1)+'. Probá sacar el 2.º filtro: ¿sale más o menos luz?';
+    else if(without<withAll) s='Sin el 2.º filtro salen solo '+fmt(out,1)+' W/cm², menos que con él. El filtro del medio va girando la vibración de a poco y así deja pasar más.';
+    else s='Sin el 2.º filtro salen '+fmt(out,1)+' W/cm².';
+    return {big:fmt(out,1), unit:'W/cm²', label:s3.with2?'salen con todos los filtros':'salen sin el 2.º filtro', sentence:s, ok:!s3.with2&&without<withAll,
+      stats:[['Entra I₀ (deducida de los 75)',fmt(I0,1)+' W/cm²'],['Con el 2.º filtro',fmt(withAll,1)+' W/cm²'],['Sin el 2.º filtro',fmt(without,1)+' W/cm²']].concat(s3.extra.length?[['Solo el 1.º y el último',fmt(solo,1)+' W/cm²']]:[])};
+  },
+  steps:function(src,mode){
+    var a2=src.f3.a2, a3=src.f3.a3, fE=p8F(src.f3), dd=4, f=fE, Ic=P8_OUT/f, I=0.5*Ic*cos2(a3);
+    var Ifs='I<sub>f</sub>', fs=fn(f,dd);
+    return [
+    {t:'Datos e incógnitas', th:6, f:['src','out'], i:[
+      ['Datos','θ₂ = '+fn(a2,0)+'° y θ₃ = '+fn(a3,0)+'°: ángulos de los ejes del 2.º y el 3.º filtro respecto del 1.º. I = 75 W/cm²: intensidad que sale de los tres filtros.'],
+      ['Incógnita',Ifs+': la intensidad que sale si se quita el 2.º filtro.'],
+      ['Falta un dato','I₀ (la intensidad que entra, antes del primer filtro) no la dan. Se calcula con los 75 W/cm² en los pasos 2 y 3.']]},
+    {t:'Intensidad con los tres filtros', th:6, f:[0,1,2], i:[
+      ['Explicación','Sabemos qué sale de los tres filtros (I = 75 W/cm²) pero no qué entra (I₀). Lo primero es escribir qué parte de I₀ llega a la salida: el 1.º filtro deja pasar la mitad, y el 2.º y el 3.º aplican la ley de Malus con el ángulo respecto del filtro anterior ('+fn(a2,0)+'° y '+fn(a3,0)+'° − '+fn(a2,0)+'°). Reemplazando los valores obtenemos que I = '+fs+' · I₀.'],
+      ['Fórmula',fx('I / I₀ = ½ · cos²(θ₂) · cos²(θ₃ − θ₂)')],
+      ['Cálculos','I / I₀ = ½ · cos²('+fn(a2,0)+'°) · cos²('+fn(a3,0)+'° − '+fn(a2,0)+'°) = '+fs]]},
+    {t:'Despejar I₀', th:6, f:['src'], i:[
+      ['Explicación','Ya conocemos I = 75 W/cm² y la relación I = '+fs+' · I₀, así que podemos despejar I₀, la intensidad que entra. Reemplazando los valores obtenemos I₀ = '+fn(Ic,4)+' W/cm².'],
+      ['Fórmula',fx('I₀ = I / '+fs)],
+      ['Cálculos','I₀ = 75 W/cm² / '+fs+' = '+fn(Ic,4)+' W/cm² (con el valor completo de la calculadora, no el redondeado a 4 decimales)']]},
+    {t:'Quitar el 2.º filtro', th:6, f:[0,2], v:{with2:false}, i:[
+      ['Explicación','Sin el 2.º filtro quedan solo el 1.º y el 3.º, y entra la misma I₀ que acabamos de calcular. El 1.º deja pasar la mitad y el 3.º aplica la ley de Malus con el ángulo θ₃ respecto del 1.º ('+fn(a3,0)+'°), así que usamos la fórmula de abajo. Reemplazando los valores obtenemos '+Ifs+' = '+fn(I,4)+' W/cm².'],
+      ['Fórmula',fx(Ifs+' = ½ · I₀ · cos²(θ₃)')],
+      ['Cálculos',Ifs+' = ½ · '+fn(Ic,4)+' W/cm² · cos²('+fn(a3,0)+'°) = '+fn(I,4)+' W/cm²']]},
+    {t:'Respuesta', f:['out'], v:{with2:false}, i:[
+      ['Respuesta','Si se quita el 2.º filtro, la intensidad que sale es '+Ifs+' ≈ '+fn(I,4)+' W/cm², '+(I<P8_OUT?'menor':'mayor')+' que los 75 W/cm² que salían con los tres filtros.']]} ]; },
+  life:{
+    top:'<h2>Tres lentes: el del medio devuelve la luz</h2><p>Los lentes A (eje vertical, 0°) y C (eje horizontal, 90°) están cruzados: donde se superponen solos, no pasa luz. El lente B, inclinado, hace que en la zona donde se superponen los tres vuelva a pasar luz.</p><p>Girá el lente B y mirá cómo cambia el centro del dibujo.</p>',
+    label:'Ángulo del lente B', min:0, max:90, hint:'En 45° pasa la máxima luz posible.',
+    draw:function(g,v){ drawLenses3(g,v); },
+    out:function(v){ var t=50*cos2(v)*cos2(90-v); return 'En la zona de los tres lentes pasa el <b>'+fmt(t,1)+' %</b> de la luz natural. Solo con A y C (sin B) pasa <b>0 %</b>.'; },
+    bot:'<p>Con B a 0° o a 90°, B es paralelo a uno de los otros dos y queda cruzado con el otro: no pasa nada. En 45° los dos saltos son iguales, de 45°, y es cuando más luz llega: ½ · cos²45° · cos²45° = 12,5 %. Es la misma sorpresa del problema 8.</p><p class="note">Probalo en casa: si tenés tres lentes de anteojos polarizados (o de cine 3D pasivo), cruzá dos y poné el tercero en el medio a 45°.</p>'},
+  table:function(){ var I0=P8_I0, If=chain([0,62],I0)[2];
+    return {rows:tbRow('I₀, intensidad inicial (W/cm²)',292.969,I0,3)+tbRow('I sin el 2.º filtro (W/cm²)',32.286,If,3),
+      note:'Cátedra: resolución de la Guía. La cátedra redondea el factor ½·cos²23°·cos²39° a 0,256; el simulador lo usa sin redondear, y de ahí sale la diferencia.'}; }
+}
+];
+
+/* ================= canvas ================= */
+var CN={}, ctx, W, H;
+['sim','solve','life'].forEach(function(k){ var el=document.getElementById('cv-'+k); CN[k]={el:el,ctx:el.getContext('2d'),W:0,H:0,dpr:1,h:290,set:0,dirty:true}; });
+function ensure(o){
+  var w=o.el.clientWidth; if(!w) return false;
+  var d=window.devicePixelRatio||1;
+  if(o.W!==w||o.dpr!==d||o.set!==o.h){ o.W=w; o.H=o.h; o.dpr=d; o.set=o.h; o.el.style.height=o.h+'px'; o.el.width=Math.round(w*d); o.el.height=Math.round(o.h*d); o.ctx.setTransform(d,0,0,d,0,0); o.dirty=true; }
+  return true;
+}
+var AMBER='242,185,46';
+function line(x1,y1,x2,y2,col,w){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function text(s,x,y,align,font,col){ ctx.font=font||('11px '+MONO); ctx.fillStyle=col||'rgba(207,217,236,.88)'; ctx.textAlign=align||'center'; ctx.textBaseline='alphabetic'; ctx.fillText(s,x,y); }
+function has(list,k){ return list.indexOf(k)>=0; }
+function tag(txt,x,y,al){ ctx.font='500 12px '+SANS; var w=ctx.measureText(txt).width+14, x0=al==='right'?x-w:al==='center'?x-w/2:x; ctx.fillStyle='rgba(8,12,24,.7)'; ctx.fillRect(x0,y-14,w,22); ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(txt,x0+7,y+2); }
+
+function drawFilters(g,sp,t,opt){
+  ctx=g.ctx; W=g.W; H=g.H; opt=opt||{};
+  var slots=sp.slots, I0=sp.I0, foc=opt.foc||[], hide=!!opt.hideOut;
+  var present=slots.filter(function(s){return s.present});
+  var ints=chain(present.map(function(s){return s.axis}),I0);
+  var y0=H*0.56, xs=[], xSrc=34, xScr=W-24, nS=slots.length;
+  if(nS===2) xs=[W*0.38,W*0.66]; else for(var u=0;u<nS;u++) xs.push(W*0.3+W*0.44*u/(nS-1));
+  var sp2=xs[1]-xs[0], dr=Math.min(19,sp2/2-3), shortLbl=sp2<62;
+  slots.forEach(function(s,i){ s.x=xs[i]; });
+  var px=present.map(function(s){return s.x});
+  var Amax=Math.min(46,W*0.11);
+  ctx.fillStyle='#0b0f1e'; ctx.fillRect(0,0,W,H);
+  line(xSrc,y0,xScr,y0,'rgba('+AMBER+',.14)',1);
+  var S=30, off=(t*55)%S;
+  for(var x=xSrc+18+off; x<xScr-8; x+=S){
+    var skip=false, st=0;
+    for(var k=0;k<px.length;k++){ if(Math.abs(x-px[k])<10) skip=true; if(x>px[k]) st++; }
+    if(skip) continue;
+    var ph=x*0.2-t*6;
+    var A=st===0?Amax:Amax*Math.sqrt(ints[st]/I0);
+    var alpha=st===0?0.9:0.4+0.6*Math.sqrt(ints[st]/I0);
+    ctx.strokeStyle='rgba('+AMBER+','+alpha+')'; ctx.lineWidth=2.2; ctx.lineCap='round';
+    if(st===0){
+      for(var j=0;j<7;j++){
+        var th=rad(j*180/7+12), L=A*0.9*Math.cos(ph+j*2.1);
+        ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x-Math.sin(th)*L,y0-Math.cos(th)*L); ctx.stroke();
+      }
+    } else {
+      var th2=rad(present[st-1].axis), L2=A*Math.cos(ph);
+      ctx.strokeStyle='rgba('+AMBER+',.22)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(x-Math.sin(th2)*A,y0-Math.cos(th2)*A); ctx.lineTo(x+Math.sin(th2)*A,y0+Math.cos(th2)*A); ctx.stroke();
+      ctx.strokeStyle='rgba('+AMBER+','+alpha+')'; ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x-Math.sin(th2)*L2,y0-Math.cos(th2)*L2); ctx.stroke();
+    }
+  }
+  var gr=ctx.createRadialGradient(xSrc,y0,2,xSrc,y0,26); gr.addColorStop(0,'rgba('+AMBER+',.9)'); gr.addColorStop(1,'rgba('+AMBER+',0)');
+  ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(xSrc,y0,26,0,6.2832); ctx.fill();
+  ctx.fillStyle='rgb('+AMBER+')'; ctx.beginPath(); ctx.arc(xSrc,y0,9,0,6.2832); ctx.fill();
+  text('Lámpara',Math.max(xSrc,28),y0+86,'center');
+  if(has(foc,'src')){ ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(xSrc,y0,20,0,6.2832); ctx.stroke(); }
+  var fr=hide?0.12:Math.sqrt(Math.max(0,ints[ints.length-1])/I0);
+  ctx.fillStyle='rgba('+AMBER+','+(0.1+0.9*fr)+')'; ctx.fillRect(xScr-6,y0-62,12,124);
+  ctx.strokeStyle='rgba(207,217,236,.4)'; ctx.lineWidth=1; ctx.strokeRect(xScr-6,y0-62,12,124);
+  text('Pantalla',W-4,y0+86,'right');
+  if(has(foc,'out')){ ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=2; ctx.strokeRect(xScr-10,y0-66,20,132); }
+  slots.forEach(function(s,i){
+    var x=s.x, dcy=52;
+    ctx.lineWidth=1.5;
+    if(s.present){ ctx.fillStyle='rgba(110,160,255,.18)'; ctx.strokeStyle='rgba(120,170,255,.95)'; ctx.setLineDash([]); }
+    else { ctx.fillStyle='rgba(110,160,255,.03)'; ctx.strokeStyle='rgba(120,170,255,.35)'; ctx.setLineDash([4,4]); }
+    ctx.beginPath(); ctx.rect(x-7,y0-62,14,124); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=s.present?'rgba(207,217,236,.55)':'rgba(207,217,236,.2)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.arc(x,dcy,dr,0,6.2832); ctx.stroke();
+    line(x,dcy-dr,x,dcy-dr+5,'rgba(207,217,236,.55)',1.2);
+    if(s.present){
+      var th=rad(s.axis), hl=dr-3;
+      line(x+Math.sin(th)*hl,dcy-Math.cos(th)*hl,x-Math.sin(th)*hl,dcy+Math.cos(th)*hl,'rgb(120,200,255)',3);
+      text(fmt(s.axis,0)+'°',x,y0-72,'center','12px '+MONO,'rgba(235,240,250,.95)');
+    } else {
+      text(shortLbl?'sin':'sin filtro',x,y0-72,'center');
+    }
+    text((shortLbl?'F':'Filtro ')+(i+1),x,y0+86,'center');
+    if(has(foc,i)){ ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=2; ctx.strokeRect(x-12,y0-67,24,134); ctx.beginPath(); ctx.arc(x,dcy,dr+5,0,6.2832); ctx.stroke(); }
+  });
+  var bounds=[xSrc].concat(px,[xScr]);
+  for(var q=0;q<ints.length;q++){
+    var mid=(bounds[q]+bounds[q+1])/2, last=(q===ints.length-1);
+    text((hide&&last)?'?':vI(ints[q]),mid,H-26,'center',(shortLbl?'600 10px ':'600 12px ')+MONO,'rgb('+AMBER+')');
+    text(sp.unit,mid,H-11,'center',(shortLbl?'9px ':'10px ')+MONO);
+  }
+}
+
+function marks(p0,p1,rs,ap,t){
+  var dx=p1[0]-p0[0], dy=p1[1]-p0[1], L=Math.hypot(dx,dy), ux=dx/L, uy=dy/L, vx=-uy, vy=ux, S=30, off=(t*50)%S;
+  ctx.fillStyle='rgba('+AMBER+',.95)'; ctx.strokeStyle='rgba('+AMBER+',.95)'; ctx.lineWidth=2; ctx.lineCap='round';
+  for(var d=off+8; d<L-4; d+=S){
+    var ph=d*0.2-t*6, pulse=Math.abs(Math.cos(ph));
+    var x=p0[0]+ux*d, y=p0[1]+uy*d;
+    if(rs>0.4){ ctx.beginPath(); ctx.arc(x,y,Math.max(0.7,rs*(0.55+0.45*pulse)),0,6.2832); ctx.fill(); }
+    var d2=d+S/2;
+    if(ap>0.8 && d2<L-4){
+      var x2=p0[0]+ux*d2, y2=p0[1]+uy*d2, h=ap*(0.35+0.65*pulse);
+      ctx.beginPath(); ctx.moveTo(x2-vx*h,y2-vy*h); ctx.lineTo(x2+vx*h,y2+vy*h); ctx.stroke();
+    }
+  }
+}
+function drawBrewster(g,ti,n,t,opt){
+  ctx=g.ctx; W=g.W; H=g.H; opt=opt||{};
+  var f=fres(ti,n), a=rad(ti), tt=rad(f.tt), foc=opt.foc||[], tB=tBof(n);
+  var cx=W/2, cy=H*0.5, R=Math.min(125,cx-24,cy-24);
+  ctx.fillStyle='#0b0f1e'; ctx.fillRect(0,0,W,H);
+  var gg=ctx.createLinearGradient(0,cy,0,H); gg.addColorStop(0,'rgba(90,160,230,.30)'); gg.addColorStop(1,'rgba(90,160,230,.08)');
+  ctx.fillStyle=gg; ctx.fillRect(0,cy,W,H-cy);
+  line(0,cy,W,cy,'rgba(170,210,245,.7)',1.5);
+  ctx.setLineDash([5,5]); line(cx,cy-R-14,cx,Math.min(H-6,cy+R+14),'rgba(207,217,236,.4)',1); ctx.setLineDash([]);
+  if(opt.ghost){
+    ctx.setLineDash([3,5]); line(cx,cy,cx-R*Math.sin(rad(tB)),cy-R*Math.cos(rad(tB)),'rgba(255,255,255,.6)',1.5); ctx.setLineDash([]);
+    var lx=cx-R*0.62*Math.sin(rad(tB)), ly=cy-R*0.62*Math.cos(rad(tB));
+    text('Brewster '+fmt(tB,1)+'°',Math.max(70,lx-6),ly,'right','11px '+MONO,'rgba(255,255,255,.85)');
+  }
+  text('Aire  n = 1',12,22,'left');
+  text((opt.label||matLabel(n))+'  n = '+fmt(n,2),W-12,H-14,'right');
+  var Rtot=(f.Rs+f.Rp)/2;
+  var inc={p0:[cx-R*Math.sin(a),cy-R*Math.cos(a)],p1:[cx,cy]};
+  var ref={p0:[cx,cy],p1:[cx+R*Math.sin(a),cy-R*Math.cos(a)]};
+  var tra={p0:[cx,cy],p1:[cx+R*Math.sin(tt),cy+R*Math.cos(tt)]};
+  [['inc',inc],['ref',ref],['tra',tra]].forEach(function(r){ if(has(foc,r[0])) line(r[1].p0[0],r[1].p0[1],r[1].p1[0],r[1].p1[1],'rgba(255,255,255,.2)',16); });
+  line(inc.p0[0],inc.p0[1],inc.p1[0],inc.p1[1],'rgba('+AMBER+',.35)',3);
+  line(ref.p0[0],ref.p0[1],ref.p1[0],ref.p1[1],'rgba('+AMBER+',.3)',1.5+3*Math.sqrt(Rtot));
+  line(tra.p0[0],tra.p0[1],tra.p1[0],tra.p1[1],'rgba('+AMBER+',.35)',1.5+3*Math.sqrt(1-Rtot));
+  marks(inc.p0,inc.p1,7,16,t);
+  marks(ref.p0,ref.p1,7*Math.sqrt(f.Rs),16*Math.sqrt(f.Rp),t);
+  marks(tra.p0,tra.p1,7*Math.sqrt(1-f.Rs),16*Math.sqrt(1-f.Rp),t);
+  var pr=Math.atan2(-Math.cos(a),Math.sin(a)), pt=Math.atan2(Math.cos(tt),Math.sin(tt));
+  var between=180-ti-f.tt, near=Math.abs(between-90)<0.5;
+  ctx.strokeStyle=near?'rgb(255,255,255)':'rgba(207,217,236,.55)'; ctx.lineWidth=near?2.5:1.2;
+  ctx.beginPath(); ctx.arc(cx,cy,30,pr,pt,false); ctx.stroke();
+  var mid=(pr+pt)/2;
+  text(fmt(between,0)+'°',cx+Math.cos(mid)*50,cy+Math.sin(mid)*50+4,'center','12px '+MONO,near?'#fff':'rgba(207,217,236,.85)');
+}
+
+/* ---- escenas de “En la vida real” ---- */
+function drawLake(g,giro){
+  ctx=g.ctx; W=g.W; H=g.H;
+  var hor=H*0.4, gl=0.88*Math.pow(Math.sin(rad(giro)),2), half=Math.round(W/2);
+  function scene(x0,x1,glare,dim){
+    ctx.save(); ctx.beginPath(); ctx.rect(x0,0,x1-x0,H); ctx.clip();
+    var sk=ctx.createLinearGradient(0,0,0,hor); sk.addColorStop(0,'#4f9ee3'); sk.addColorStop(1,'#d3ebf8'); ctx.fillStyle=sk; ctx.fillRect(x0,0,x1-x0,hor+1);
+    ctx.fillStyle='rgba(255,247,200,.95)'; ctx.beginPath(); ctx.arc(W*0.8,hor*0.42,16,0,6.2832); ctx.fill();
+    ctx.fillStyle='#55707e'; ctx.beginPath(); ctx.moveTo(0,hor);
+    [[.1,-36],[.22,-10],[.38,-52],[.55,-12],[.72,-42],[.88,-14],[1,-30]].forEach(function(p){ ctx.lineTo(W*p[0],hor+p[1]); });
+    ctx.lineTo(W,hor); ctx.closePath(); ctx.fill();
+    var wg=ctx.createLinearGradient(0,hor,0,H); wg.addColorStop(0,'#2f8f9d'); wg.addColorStop(1,'#12485c'); ctx.fillStyle=wg; ctx.fillRect(x0,hor,x1-x0,H-hor);
+    var d=H-hor;
+    ctx.fillStyle='#24383f';
+    [[.12,.86,26,9],[.33,.9,34,11],[.7,.88,30,10],[.92,.84,22,8]].forEach(function(r){ ctx.beginPath(); ctx.ellipse(W*r[0],hor+d*r[1],r[2],r[3],0,0,6.2832); ctx.fill(); });
+    [[.28,.5,1],[.55,.72,-1],[.82,.42,1],[.4,.82,-1]].forEach(function(fi){
+      var fx=W*fi[0], fy=hor+d*fi[1], dr=fi[2];
+      ctx.fillStyle='#ff8f3d'; ctx.beginPath(); ctx.ellipse(fx,fy,15,7,0,0,6.2832); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(fx-dr*13,fy); ctx.lineTo(fx-dr*26,fy-8); ctx.lineTo(fx-dr*26,fy+8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#1a1e3a'; ctx.beginPath(); ctx.arc(fx+dr*8,fy-1.5,1.6,0,6.2832); ctx.fill();
+    });
+    var gg=ctx.createLinearGradient(0,hor,0,H); gg.addColorStop(0,'rgba(236,246,253,'+glare+')'); gg.addColorStop(1,'rgba(196,226,246,'+(glare*0.85)+')');
+    ctx.fillStyle=gg; ctx.fillRect(x0,hor,x1-x0,H-hor);
+    if(dim){ ctx.fillStyle='rgba(10,14,30,'+dim+')'; ctx.fillRect(x0,0,x1-x0,H); }
+    ctx.restore();
+  }
+  scene(0,half,0.88,0); scene(half,W,gl,0.2);
+  line(half,0,half,H,'rgba(255,255,255,.9)',2);
+  tag('Sin anteojos',10,24,'left'); tag('Con lente polarizado',W-10,24,'right');
+  tag('Lente a '+fmt(giro,0)+'°',W-10,H-14,'right');
+}
+function hatch(cx,cy,r,axis,alpha){
+  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r,0,6.2832); ctx.clip();
+  ctx.translate(cx,cy); ctx.rotate(-rad(axis)); ctx.strokeStyle='rgba(20,30,60,'+alpha+')'; ctx.lineWidth=1;
+  for(var x=-r;x<=r;x+=8){ ctx.beginPath(); ctx.moveTo(x,-r); ctx.lineTo(x,r); ctx.stroke(); }
+  ctx.restore();
+}
+function drawLenses2(g,ang){
+  ctx=g.ctx; W=g.W; H=g.H;
+  var base=[255,246,214];
+  function col(b){ return 'rgb('+Math.round(base[0]*b)+','+Math.round(base[1]*b)+','+Math.round(base[2]*b)+')'; }
+  var cy=H*0.47, r=Math.min(H*0.36,W*0.22), c1=W/2-r*0.55, c2=W/2+r*0.55, ov=0.5*cos2(ang);
+  function circ(x){ ctx.beginPath(); ctx.arc(x,cy,r,0,6.2832); }
+  ctx.fillStyle=col(1); ctx.fillRect(0,0,W,H);
+  circ(c1); ctx.fillStyle=col(0.5); ctx.fill();
+  circ(c2); ctx.fillStyle=col(0.5); ctx.fill();
+  ctx.save(); circ(c1); ctx.clip(); circ(c2); ctx.fillStyle=col(ov); ctx.fill(); ctx.restore();
+  hatch(c1,cy,r,0,0.14); hatch(c2,cy,r,ang,0.14);
+  ctx.strokeStyle='rgba(26,30,58,.8)'; ctx.lineWidth=2; circ(c1); ctx.stroke(); circ(c2); ctx.stroke();
+  function lab(s,x,y,b){ text(s,x,y,'center','600 13px '+MONO,b>0.4?'#1a1e3a':'#ffffff'); }
+  text('Luz libre: 100 %',10,20,'left','600 12px '+MONO,'#1a1e3a');
+  lab('50 %',c1-r*0.55,cy+4,0.5); lab('50 %',c2+r*0.55,cy+4,0.5);
+  lab(fmt(ov*100,1)+' %',W/2,cy+4,ov);
+  text('Lente 1',c1-r*0.3,cy+r+20,'center','12px '+SANS,'rgba(26,30,58,.9)');
+  text('Lente 2 ('+fmt(ang,0)+'°)',c2+r*0.3,cy+r+20,'center','12px '+SANS,'rgba(26,30,58,.9)');
+}
+var offc=document.createElement('canvas');
+function drawLenses3(g,aB){
+  ctx=g.ctx; W=g.W; H=g.H;
+  var cx=W/2, cy=H*0.52, r=Math.min(H*0.34,W*0.19);
+  var A=[cx-r*0.58,cy+r*0.32], C=[cx+r*0.58,cy+r*0.32], B=[cx,cy-r*0.52];
+  var br=[], m, ax;
+  for(m=0;m<8;m++){ ax=[]; if(m&1)ax.push(0); if(m&2)ax.push(aB); if(m&4)ax.push(90); br[m]=ax.length?chain(ax,1)[ax.length]:1; }
+  offc.width=W; offc.height=H;
+  var c2=offc.getContext('2d'), im=c2.createImageData(W,H), d=im.data, r2=r*r, x, y, i, mk, b;
+  for(y=0;y<H;y++) for(x=0;x<W;x++){
+    mk=0;
+    if((x-A[0])*(x-A[0])+(y-A[1])*(y-A[1])<r2) mk|=1;
+    if((x-B[0])*(x-B[0])+(y-B[1])*(y-B[1])<r2) mk|=2;
+    if((x-C[0])*(x-C[0])+(y-C[1])*(y-C[1])<r2) mk|=4;
+    b=br[mk]; i=(y*W+x)*4; d[i]=255*b; d[i+1]=246*b; d[i+2]=214*b; d[i+3]=255;
+  }
+  c2.putImageData(im,0,0); ctx.drawImage(offc,0,0,W,H);
+  hatch(A[0],A[1],r,0,0.12); hatch(B[0],B[1],r,aB,0.12); hatch(C[0],C[1],r,90,0.12);
+  ctx.strokeStyle='rgba(26,30,58,.8)'; ctx.lineWidth=2;
+  [A,B,C].forEach(function(p){ ctx.beginPath(); ctx.arc(p[0],p[1],r,0,6.2832); ctx.stroke(); });
+  var tri=br[7];
+  text(fmt(tri*100,1)+' %',(A[0]+B[0]+C[0])/3,(A[1]+B[1]+C[1])/3+4,'center','600 12px '+MONO,tri>0.04?'#1a1e3a':'#ffffff');
+  text('A · 0°',A[0]-r*0.55,A[1]+r+16 > H-4 ? H-6 : A[1]+r+16,'center','12px '+SANS,'rgba(26,30,58,.9)');
+  text('C · 90°',C[0]+r*0.55,C[1]+r+16 > H-4 ? H-6 : C[1]+r+16,'center','12px '+SANS,'rgba(26,30,58,.9)');
+  text('B · '+fmt(aB,0)+'°',B[0],Math.max(14,B[1]-r-6),'center','12px '+SANS,'rgba(26,30,58,.9)');
+}
+
+/* ================= interfaz ================= */
+var SECS=[['sim','Simulador'],['solve','Cómo se resuelve'],['check','Comprobar']];
+function buildTop(){
+  var pb=$('#problems'); pb.innerHTML='';
+  var tb=document.createElement('button'); tb.className='pb'; tb.innerHTML='<b>Teoría</b><span>Unidad 14</span>'; tb.onclick=function(){ ui.back=null; showTheory(); }; pb.appendChild(tb);
+  PROBS.forEach(function(p,i){
+    var b=document.createElement('button'); b.className='pb'; b.innerHTML='<b>'+p.tab+'</b><span>'+p.sub+'</span>';
+    b.onclick=function(){ setProb(i); };
+    pb.appendChild(b);
+  });
+  var sn=$('#sections'); sn.innerHTML='';
+  SECS.forEach(function(s){
+    var b=document.createElement('button'); b.className='sb'; b.textContent=s[1]; b.setAttribute('data-sec',s[0]);
+    b.onclick=function(){ goSec(s[0]); };
+    sn.appendChild(b);
+  });
+  [].forEach.call(document.querySelectorAll('.next'),function(n){
+    var k=n.getAttribute('data-for'), idx=0; SECS.forEach(function(s,i){ if(s[0]===k) idx=i; });
+    var nx=SECS[idx+1]; if(!nx) return;
+    var b=document.createElement('button'); b.className='btn main'; b.textContent='Siguiente: '+nx[1]+' →';
+    b.onclick=function(){ goSec(nx[0]); };
+    n.appendChild(b);
+  });
+}
+function setProb(i){
+  ui.prob=i; ui.step=0; if(ui.sec==='theory') ui.sec='sim';
+  $('#enun').hidden=false; $('#sections').hidden=false;
+  [].forEach.call($('#problems').children,function(b,k){ b.setAttribute('aria-pressed',k===i+1?'true':'false'); });
+  var P=PROBS[i];
+  $('#plab').textContent=P.tab+' · '+P.sub; $('#full').textContent=P.full; $('#pnote').textContent=P.note||'';
+  $('#idea').innerHTML=P.idea; $('#legend').innerHTML=P.legend;
+  buildControls(); renderSection();
+}
+function showTheory(){
+  ui.sec='theory';
+  $('#enun').hidden=true; $('#sections').hidden=true;
+  [].forEach.call($('#problems').children,function(b,k){ b.setAttribute('aria-pressed',k===0?'true':'false'); });
+  renderSection(); window.scrollTo(0,0);
+}
+function goSec(s){
+  ui.sec=s; ui.step=0; renderSection();
+  try{ $('#sections').scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'}); }catch(e){}
+}
+function renderSection(){
+  SECS.forEach(function(s){ $('#s-'+s[0]).hidden=(ui.sec!==s[0]); });
+  $('#s-theory').hidden=(ui.sec!=='theory');
+  if(ui.sec==='theory'){ renderTheory(); return; }
+  [].forEach.call($('#sections').children,function(b){ if(b.getAttribute('data-sec')===ui.sec) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  if(ui.sec==='sim') render();
+  if(ui.sec==='solve') renderSolve();
+  if(ui.sec==='life') renderLife(true);
+  if(ui.sec==='check') renderCheck();
+}
+function renderTheory(){
+  var h='';
+  if(ui.back) h+='<div class="btnrow"><button class="btn main" id="backbtn">← Volver al '+PROBS[ui.back.prob].tab+'</button></div>';
+  h+='<h2>Teoría de la unidad: Polarización</h2><p class="note">Es la teoría común a los tres problemas. Cada bloque dice qué problemas lo usan, y los pasos de “Cómo se resuelve” te mandan al bloque que corresponde.</p>';
+  THEORY.forEach(function(b,i){
+    var n=i+1, who=[];
+    PROBS.forEach(function(p){ if(p.use.indexOf(n)>=0) who.push(p.tab.replace('Problema ','')); });
+    h+='<section class="tb" id="tb'+n+'"><h3><span class="bn">'+n+'</span>'+b.h+(who.length?'<span class="used">Problema'+(who.length>1?'s':'')+' '+who.join(' y ')+'</span>':'')+'</h3>'+b.p.map(function(x){return '<p>'+x+'</p>'}).join('')+(b.fig?b.fig():'')+'</section>';
+  });
+  h+='<div class="btnrow">'+PROBS.map(function(p,i){return '<button class="btn" data-go="'+i+'">Ir al '+p.tab+'</button>'}).join('')+'</div>';
+  $('#theory').innerHTML=h;
+  var bb=$('#backbtn'); if(bb) bb.onclick=function(){ var bk=ui.back; ui.back=null; setProb(bk.prob); goSec(bk.sec); };
+  [].forEach.call($('#theory').querySelectorAll('[data-go]'),function(x){ x.onclick=function(){ ui.back=null; setProb(parseInt(x.getAttribute('data-go'),10)); }; });
+}
+function gotoBlock(n){ ui.back={prob:ui.prob,sec:ui.sec}; showTheory(); setTimeout(function(){ var e=document.getElementById('tb'+n); if(e) e.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'}); },30); }
+function buildControls(){
+  var P=PROBS[ui.prob], box=$('#controls'); box.innerHTML='';
+  P.controls().forEach(function(c){
+    var w=document.createElement('div'); w.className='ctl';
+    w.innerHTML='<div class="row"><label for="c-'+c.id+'">'+c.label+'</label><output id="o-'+c.id+'"></output></div><input id="c-'+c.id+'" type="range" min="'+c.min+'" max="'+c.max+'" step="'+c.step+'">';
+    var inp=w.querySelector('input'); inp.value=c.get();
+    inp.oninput=function(){ c.set(parseFloat(inp.value)); updateOutputs(); render(); };
+    box.appendChild(w);
+  });
+  var row=document.createElement('div'); row.className='btnrow';
+  if(P.extra) P.extra(row);
+  var r=document.createElement('button'); r.className='btn'; r.textContent='Volver a los datos del problema';
+  r.onclick=function(){ P.reset(); buildControls(); render(); };
+  row.appendChild(r); box.appendChild(row);
+  updateOutputs();
+}
+function updateOutputs(){
+  PROBS[ui.prob].controls().forEach(function(c){ var o=$('#o-'+c.id); if(o) o.textContent=fmt(c.get(),c.d)+c.unit; });
+  var t2=$('#toggle2'); if(t2) t2.textContent=S.f3.with2?'Quitar el 2.º filtro':'Poner el 2.º filtro';
+}
+function syncControls(){
+  PROBS[ui.prob].controls().forEach(function(c){ var i=$('#c-'+c.id); if(i) i.value=c.get(); });
+  updateOutputs(); render();
+}
+function render(){
+  var r=PROBS[ui.prob].readout();
+  $('#big').innerHTML=r.big+'<small>'+r.unit+'</small>';
+  $('#biglabel').textContent=r.label;
+  var s=$('#sentence'); s.textContent=r.sentence; s.className='sentence'+(r.ok?' ok':'');
+  $('#stats').innerHTML=r.stats.map(function(x){return '<div><span>'+x[0]+'</span><b>'+x[1]+'</b></div>'}).join('');
+  renderSimSteps();
+  $('#cv-sim').setAttribute('aria-label',PROBS[ui.prob].sub+': '+r.big+' '+r.unit+' '+r.label);
+}
+function stepsHTML(st,inter){
+  return st.map(function(s,k){
+    return '<div class="stp'+(inter?'':' ro')+(inter&&k===ui.step?' on':'')+'" data-k="'+k+'"'+(inter?' role="button" tabindex="0"':'')+'><div class="n">Paso '+(k+1)+'</div><h3>'+s.t+'</h3>'+
+      s.i.filter(function(x){return x[0]==='Explicación'}).map(function(x){return '<p class="expl">'+x[1]+'</p>'}).join('')+ul(s.i.filter(function(x){return x[0]!=='Explicación'}).map(function(x){return '<b>'+x[0]+':</b> '+x[1]}))+(s.th?'<button class="lnk" data-b="'+s.th+'">Teoría: bloque '+s.th+', '+THEORY[s.th-1].h+'</button>':'')+'</div>';
+  }).join('');
+}
+function wireLinks(box){
+  [].forEach.call(box.querySelectorAll('.lnk'),function(l){ l.onclick=function(ev){ ev.stopPropagation(); gotoBlock(parseInt(l.getAttribute('data-b'),10)); }; l.onkeydown=function(ev){ ev.stopPropagation(); }; });
+}
+function renderSimSteps(){
+  var box=$('#sim-steps'); box.innerHTML=stepsHTML(PROBS[ui.prob].steps(S,'sim'),false); wireLinks(box);
+}
+function renderSolve(){
+  var st=PROBS[ui.prob].steps(freshS(),'problem'), box=$('#solve-steps');
+  box.innerHTML=stepsHTML(st,true); wireLinks(box);
+  [].forEach.call(box.querySelectorAll('.stp'),function(el){
+    var go=function(){ ui.step=parseInt(el.getAttribute('data-k'),10); [].forEach.call(box.querySelectorAll('.stp'),function(e2){ e2.classList.toggle('on',e2===el); }); };
+    el.onclick=go; el.onkeydown=function(ev){ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go(); } };
+  });
+}
+function renderLife(full){
+  var L=PROBS[ui.prob].life, v=ui.life[ui.prob];
+  if(full){
+    $('#life-top').innerHTML=L.top; $('#life-bot').innerHTML=L.bot;
+    var c=$('#life-ctl');
+    c.innerHTML='<div class="ctl"><div class="row"><label for="lv">'+L.label+'</label><output id="lvo"></output></div><input id="lv" type="range" min="'+L.min+'" max="'+L.max+'" step="1"><span class="note">'+L.hint+'</span></div>';
+    var inp=$('#lv'); inp.value=v;
+    inp.oninput=function(){ ui.life[ui.prob]=parseFloat(inp.value); renderLife(false); };
+  }
+  v=ui.life[ui.prob];
+  $('#lvo').textContent=fmt(v,0)+'°';
+  $('#life-out').innerHTML=L.out(v);
+  CN.life.dirty=true;
+}
+function renderCheck(){
+  var t=PROBS[ui.prob].table(), p=$('#check');
+  p.innerHTML='<h2>Comprobar: cátedra contra simulador</h2><p class="note">Se compara la resolución de la cátedra con el resultado del simulador. Error relativo = |simulador − cátedra| / cátedra.</p><div class="tblw"><table><thead><tr><th>Magnitud</th><th>Cátedra</th><th>Simulador</th><th>Error relativo</th></tr></thead><tbody>'+t.rows+'</tbody></table></div><p class="note">'+t.note+'</p>'+
+    (t.again?'<div class="btnrow"><button class="btn" id="again">Volver a simular</button></div>':'');
+  var a=$('#again'); if(a) a.onclick=renderCheck;
+}
+
+/* ================= bucle ================= */
+var tPrev=0, T=0;
+function drawSpec(g,sp,opt){ if(sp.kind==='b') drawBrewster(g,sp.ti,sp.n,T,opt); else drawFilters(g,sp,T,opt); }
+function frame(ts){
+  var dt=Math.min(0.1,(ts-tPrev)/1000); tPrev=ts;
+  if(!reduced) T+=dt;
+  var p=ui.prob;
+  try{
+    if(ui.sec==='sim'){ CN.sim.h=p===0?320:290; if(ensure(CN.sim)) drawSpec(CN.sim,specOf(p,S),{ghost:p===0}); }
+    else if(ui.sec==='solve'){
+      var stp=PROBS[p].steps(freshS(),'problem')[ui.step]||{f:[]}; CN.solve.h=p===0?320:290;
+      if(ensure(CN.solve)) drawSpec(CN.solve,specOf(p,freshS(),stp.v),{foc:stp.f,label:p===0?'Vidrio':null});
+    }
+    else if(ui.sec==='life'){
+      CN.life.h=270;
+      if(ensure(CN.life) && CN.life.dirty){ PROBS[p].life.draw(CN.life,ui.life[p]); CN.life.dirty=false; }
+    }
+  }catch(e){ if(window.console) console.error(e); }
+  requestAnimationFrame(frame);
+}
+
+buildTop(); setProb(0); showTheory();
+requestAnimationFrame(function(ts){ tPrev=ts; frame(ts); });
+})();
+</script>
+
+</body></html>
