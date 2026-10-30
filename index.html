@@ -1,12 +1,13 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Simulador de Polarización</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Lexend:wght@400;500;600&display=swap">
+</head><body style="margin:0">
 <style>
 /* Layout: encabezado, 3 problemas, 6 secciones que se abren de a una (la Teoría primero y con columna de lectura). */
 :root{
-  --bg:#f2f3f9; --card:#ffffff; --ink:#1a1e3a; --muted:#566086; --line:#d9dcec;
-  --accent:#3a3fd6; --accent-ink:#ffffff; --soft:#e8eaf7; --amber:#b86e00;
+  --bg:#CCE7F5; --card:#ffffff; --ink:#1F3A5F; --muted:#4f6a8a; --line:#A9C4E2;
+  --accent:#2E6DA4; --accent-ink:#ffffff; --soft:#D9EEFA; --amber:#b86e00;
+  --cel:#5B9BD5; --cel2:#CCE7F5;
   --ok:#14794a; --bad:#b3261e;
   --font-b:"Lexend","Segoe UI",system-ui,sans-serif;
   --font-m:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -15,13 +16,13 @@
   :root:not([data-theme="light"]){
     --bg:#0e1121; --card:#171b31; --ink:#e9ebfa; --muted:#9aa2c8; --line:#2a2f50;
     --accent:#9a9dff; --accent-ink:#0e1121; --soft:#202543; --amber:#f2b441;
-    --ok:#6fd49b; --bad:#ff8f86; color-scheme:dark;
+    --ok:#6fd49b; --bad:#ff8f86; --cel:#5a6aa8; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0e1121; --card:#171b31; --ink:#e9ebfa; --muted:#9aa2c8; --line:#2a2f50;
   --accent:#9a9dff; --accent-ink:#0e1121; --soft:#202543; --amber:#f2b441;
-  --ok:#6fd49b; --bad:#ff8f86; color-scheme:dark;
+  --ok:#6fd49b; --bad:#ff8f86; --cel:#5a6aa8; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -56,8 +57,9 @@ details.full p{margin:6px 0 0; font-size:13.5px}
 
 .sections{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
 @media (min-width:720px){ .sections{grid-template-columns:repeat(6,1fr)} }
-.sb{font-size:13.5px; cursor:pointer; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:999px; padding:8px 6px; text-align:center; min-width:0}
-.sb[aria-current="page"]{background:var(--soft); border-color:var(--accent); font-weight:600; color:var(--accent)}
+.sb{font-size:13.5px; font-weight:500; cursor:pointer; color:var(--accent); background:var(--card); border:1.5px solid var(--cel); border-radius:999px; padding:8px 6px; text-align:center; min-width:0; box-shadow:0 1px 3px rgba(31,58,95,.12)}
+.sb:hover{background:var(--soft)}
+.sb[aria-current="page"]{background:var(--accent); border-color:var(--accent); font-weight:600; color:var(--accent-ink)}
 
 .sec{display:grid; gap:14px; min-width:0}
 .panel{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; min-width:0}
@@ -134,6 +136,13 @@ input[type=range]{width:100%; height:30px; accent-color:var(--accent); margin:2p
 .opt.bad{border-color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad)}
 .fb{font-size:15px; min-height:1.5em}
 .fb b.ok{color:var(--ok)} .fb b.bad{color:var(--bad)}
+
+.tb .bn{color:var(--accent-ink)}
+
+/* Fondo con dibujos del tema (ondas, vibraciones, filtros, reflexión) */
+body{background-color:var(--bg); background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22260%22%20height%3D%22260%22%20viewBox%3D%220%200%20260%20260%22%3E%3Cg%20opacity%3D%220.22%22%3E%3Cpolyline%20points%3D%2210%2C40.0%2012%2C42.5%2014%2C44.9%2016%2C47.1%2018%2C48.9%2020%2C50.4%2022%2C51.4%2024%2C51.9%2026%2C51.9%2028%2C51.4%2030%2C50.4%2032%2C48.9%2034%2C47.1%2036%2C44.9%2038%2C42.5%2040%2C40.0%2042%2C37.5%2044%2C35.1%2046%2C32.9%2048%2C31.1%2050%2C29.6%2052%2C28.6%2054%2C28.1%2056%2C28.1%2058%2C28.6%2060%2C29.6%2062%2C31.1%2064%2C32.9%2066%2C35.1%2068%2C37.5%2070%2C40.0%2072%2C42.5%2074%2C44.9%2076%2C47.1%2078%2C48.9%2080%2C50.4%2082%2C51.4%2084%2C51.9%2086%2C51.9%2088%2C51.4%2090%2C50.4%2092%2C48.9%2094%2C47.1%2096%2C44.9%2098%2C42.5%20100%2C40.0%20102%2C37.5%20104%2C35.1%20106%2C32.9%20108%2C31.1%20110%2C29.6%20112%2C28.6%20114%2C28.1%20116%2C28.1%20118%2C28.6%20120%2C29.6%20122%2C31.1%20124%2C32.9%20126%2C35.1%20128%2C37.5%20130%2C40.0%22%20fill%3D%22none%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.6%22%2F%3E%3Cline%20x1%3D%22190.0%22%20y1%3D%2224.0%22%20x2%3D%22190.0%22%20y2%3D%2268.0%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpolygon%20points%3D%22190.0%2C68.0%20187.0%2C62.0%20193.0%2C62.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolygon%20points%3D%22190.0%2C24.0%20187.0%2C30.0%20193.0%2C30.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cline%20x1%3D%22174.4%22%20y1%3D%2230.4%22%20x2%3D%22205.6%22%20y2%3D%2261.6%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpolygon%20points%3D%22205.6%2C61.6%20199.2%2C59.4%20203.4%2C55.2%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolygon%20points%3D%22174.4%2C30.4%20176.6%2C36.8%20180.8%2C32.6%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cline%20x1%3D%22168.0%22%20y1%3D%2246.0%22%20x2%3D%22212.0%22%20y2%3D%2246.0%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpolygon%20points%3D%22212.0%2C46.0%20206.0%2C49.0%20206.0%2C43.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolygon%20points%3D%22168.0%2C46.0%20174.0%2C49.0%20174.0%2C43.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cline%20x1%3D%22174.4%22%20y1%3D%2261.6%22%20x2%3D%22205.6%22%20y2%3D%2230.4%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpolygon%20points%3D%22205.6%2C30.4%20203.4%2C36.8%20199.2%2C32.6%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolygon%20points%3D%22174.4%2C61.6%20180.8%2C59.4%20176.6%2C55.2%22%20fill%3D%22%232E6DA4%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%22100%22%20width%3D%2260%22%20height%3D%2270%22%20rx%3D%226%22%20fill%3D%22none%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.5%22%2F%3E%3Cline%20x1%3D%2240%22%20y1%3D%22108%22%20x2%3D%2240%22%20y2%3D%22162%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%22108%22%20x2%3D%2250%22%20y2%3D%22162%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%2F%3E%3Cline%20x1%3D%2260%22%20y1%3D%22108%22%20x2%3D%2260%22%20y2%3D%22162%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%2F%3E%3Cline%20x1%3D%2270%22%20y1%3D%22108%22%20x2%3D%2270%22%20y2%3D%22162%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%2F%3E%3Cline%20x1%3D%2280%22%20y1%3D%22108%22%20x2%3D%2280%22%20y2%3D%22162%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%2F%3E%3Cline%20x1%3D%22125.0%22%20y1%3D%22110.0%22%20x2%3D%22125.0%22%20y2%3D%22160.0%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpolygon%20points%3D%22125.0%2C160.0%20122.0%2C154.0%20128.0%2C154.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolygon%20points%3D%22125.0%2C110.0%20122.0%2C116.0%20128.0%2C116.0%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cline%20x1%3D%22150%22%20y1%3D%22210%22%20x2%3D%22250%22%20y2%3D%22210%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.5%22%2F%3E%3Cline%20x1%3D%22160%22%20y1%3D%22160%22%20x2%3D%22200%22%20y2%3D%22210%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.5%22%2F%3E%3Cline%20x1%3D%22200%22%20y1%3D%22210%22%20x2%3D%22240%22%20y2%3D%22160%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.5%22%2F%3E%3Cline%20x1%3D%22200%22%20y1%3D%22210%22%20x2%3D%22218%22%20y2%3D%22240%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.3%22%20stroke-dasharray%3D%223%203%22%2F%3E%3Cline%20x1%3D%22200%22%20y1%3D%22170%22%20x2%3D%22200%22%20y2%3D%22248%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221%22%20stroke-dasharray%3D%222%204%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%22225%22%20r%3D%222.6%22%20fill%3D%22%232E6DA4%22%2F%3E%3Ccircle%20cx%3D%2285%22%20cy%3D%22225%22%20r%3D%222.6%22%20fill%3D%22%232E6DA4%22%2F%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%22225%22%20r%3D%222.6%22%20fill%3D%22%232E6DA4%22%2F%3E%3Cpolyline%20points%3D%22150%2C120.0%20152%2C122.8%20154%2C125.3%20156%2C127.3%20158%2C128.6%20160%2C129.0%20162%2C128.6%20164%2C127.3%20166%2C125.3%20168%2C122.8%20170%2C120.0%20172%2C117.2%20174%2C114.7%20176%2C112.7%20178%2C111.4%20180%2C111.0%20182%2C111.4%20184%2C112.7%20186%2C114.7%20188%2C117.2%20190%2C120.0%20192%2C122.8%20194%2C125.3%20196%2C127.3%20198%2C128.6%20200%2C129.0%20202%2C128.6%20204%2C127.3%20206%2C125.3%20208%2C122.8%20210%2C120.0%22%20fill%3D%22none%22%20stroke%3D%22%232E6DA4%22%20stroke-width%3D%221.4%22%20transform%3D%22rotate%28-20%20180%20120%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-size:260px 260px; background-attachment:fixed}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) body{background-image:none} }
+:root[data-theme="dark"] body{background-image:none}
 </style>
 
 <main>
@@ -293,17 +302,22 @@ function figLight(){
     '<text x="85" y="112" text-anchor="middle">Luz natural</text><text x="255" y="112" text-anchor="middle">Luz polarizada</text></svg>'+
     '<figcaption>Cada flecha es una dirección de vibración, vista de frente (la luz viene hacia vos). La luz natural las tiene todas; la polarizada, una sola.</figcaption></figure>';
 }
-function grille(x,y,w,h){
-  var s='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>';
-  for(var i=0;i<6;i++){ s+='<rect x="'+(x+10+i*((w-28)/5))+'" y="'+(y+6)+'" width="8" height="'+(h-12)+'" rx="2" fill="var(--accent)" opacity=".85"/>'; }
+function chains(x,y,w,h){
+  var s='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="8" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>';
+  for(var i=0;i<7;i++){
+    var cx=x+12+i*((w-24)/6), pts=[];
+    for(var k=0;k<=12;k++){ var yy=y+6+k*(h-12)/12; pts.push((cx+2.2*Math.sin(k*1.3+i*1.7)).toFixed(1)+','+yy.toFixed(1)); }
+    s+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="#b5532a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
   return s;
 }
 function figGrille(){
-  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="Un filtro es como una reja: pasa la vibración que va a lo largo de las ranuras y frena la que las cruza.">'+
-    grille(20,14,130,82)+arrow2(85,22,85,88,'var(--ok)',3)+
-    grille(190,14,130,82)+arrow2(198,55,312,55,'var(--bad)',3)+
-    '<text x="85" y="116" text-anchor="middle">Vibra a lo largo: pasa</text><text x="255" y="116" text-anchor="middle">Vibra cruzando: se frena</text></svg>'+
-    '<figcaption>Las barras azules son la reja del filtro. Las ranuras entre barras definen el eje.</figcaption></figure>';
+  return '<figure class="fig"><svg viewBox="0 0 340 148" role="img" aria-label="Filtro Polaroid: la vibración paralela a las cadenas de hidrocarburos se absorbe; la perpendicular pasa. El eje de transmisión es perpendicular a las cadenas.">'+
+    chains(20,14,130,82)+arrow2(76,20,76,90,'var(--bad)',3.2)+
+    chains(190,14,130,82)+arrow2(196,55,314,55,'var(--ok)',3.2)+
+    '<text x="85" y="114" text-anchor="middle">Paralela a las cadenas:</text><text x="85" y="128" text-anchor="middle" style="font-weight:600">se absorbe</text>'+
+    '<text x="255" y="114" text-anchor="middle">Perpendicular a las cadenas:</text><text x="255" y="128" text-anchor="middle" style="font-weight:600">pasa (eje de transmisión)</text></svg>'+
+    '<figcaption>Las líneas onduladas son las cadenas de hidrocarburos del filtro (Polaroid). Absorben la vibración que va en su dirección. Por eso el eje de transmisión es perpendicular a las cadenas.</figcaption></figure>';
 }
 
 
@@ -318,7 +332,7 @@ function figTipos(){
 }
 function figMalus(){
   var ox=110, oy=104, L=84, a=rad(35), ex=ox+L*Math.sin(a), ey=oy-L*Math.cos(a);
-  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="El vector E que llega se descompone en una parte a lo largo del eje, que pasa, y otra perpendicular, que se frena.">'+
+  return '<figure class="fig"><svg viewBox="0 0 340 130" role="img" aria-label="El vector E que llega se descompone en una parte a lo largo del eje, que pasa, y otra perpendicular, que se absorbe.">'+
     '<line x1="'+ox+'" y1="'+oy+'" x2="'+ox+'" y2="14" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
     '<line x1="'+ox+'" y1="'+oy+'" x2="'+ex.toFixed(1)+'" y2="'+ey.toFixed(1)+'" stroke="var(--amber)" stroke-width="3" stroke-linecap="round"/>'+
     '<line x1="'+ox+'" y1="'+ey.toFixed(1)+'" x2="'+ex.toFixed(1)+'" y2="'+ey.toFixed(1)+'" stroke="var(--line)" stroke-dasharray="3 3"/>'+
@@ -327,30 +341,36 @@ function figMalus(){
     '<line x1="'+ox+'" y1="'+oy+'" x2="'+ex.toFixed(1)+'" y2="'+oy+'" stroke="var(--bad)" stroke-width="3" stroke-linecap="round"/>'+
     '<text x="'+(ox-6)+'" y="22" text-anchor="end">eje del filtro</text><text x="'+(ex+8).toFixed(1)+'" y="'+(ey+4).toFixed(1)+'">E que llega</text>'+
     '<text x="'+(ox-8)+'" y="'+((oy+ey)/2+4).toFixed(1)+'" text-anchor="end">pasa: E·cos θ</text>'+
-    '<text x="'+(ox+L*0.3).toFixed(1)+'" y="'+(oy+16)+'">se frena: E·sen θ</text>'+
+    '<text x="'+(ox+L*0.3).toFixed(1)+'" y="'+(oy+16)+'">se absorbe: E·sen θ</text>'+
     '<path d="M'+ox+' '+(oy-26)+' A26 26 0 0 1 '+(ox+26*Math.sin(a)).toFixed(1)+' '+(oy-26*Math.cos(a)).toFixed(1)+'" fill="none" stroke="var(--ink)"/><text x="'+(ox+14)+'" y="'+(oy-30)+'">θ</text></svg>'+
     '<figcaption>El filtro se queda con la parte de E que va a lo largo de su eje. Como la intensidad es E², pasa cos²θ.</figcaption></figure>';
 }
 function figRefl(){
-  var ox=170, oy=78, i, mk='', dI=[-0.58,-0.82], dR=[0.58,-0.82];
-  function dot(d,k){ return '<circle cx="'+(ox+d[0]*k).toFixed(1)+'" cy="'+(oy+d[1]*k).toFixed(1)+'" r="3.2" fill="var(--ink)"/>'; }
-  function arr(d,k){ var p=[-d[1],d[0]], cx=ox+d[0]*k, cy=oy+d[1]*k; return arrow2((cx-p[0]*9).toFixed(1),(cy-p[1]*9).toFixed(1),(cx+p[0]*9).toFixed(1),(cy+p[1]*9).toFixed(1),'var(--accent)',1.8); }
+  /* vidrio n = 1,5; incidencia 50° ⇒ refracción 30,7° (Snell): el refractado se acerca a la normal */
+  var ox=170, oy=82, ti=rad(50), tr=Math.asin(Math.sin(ti)/1.5), L=86, Lt=62, mk='';
+  var dI=[-Math.sin(ti),-Math.cos(ti)], dR=[Math.sin(ti),-Math.cos(ti)], dT=[Math.sin(tr),Math.cos(tr)];
+  function P(d,k){ return [ox+d[0]*k, oy+d[1]*k]; }
+  function dot(d,k){ var q=P(d,k); return '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="3.2" fill="var(--ink)"/>'; }
+  function arr(d,k){ var p=[-d[1],d[0]], q=P(d,k); return arrow2(+(q[0]-p[0]*9).toFixed(1),+(q[1]-p[1]*9).toFixed(1),+(q[0]+p[0]*9).toFixed(1),+(q[1]+p[1]*9).toFixed(1),'var(--accent)',1.8); }
+  function ray(d,k,w,op){ var q=P(d,k); return '<line x1="'+ox+'" y1="'+oy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="var(--amber)" stroke-width="'+w+'"'+(op?' opacity="'+op+'"':'')+'/>'; }
   /* incidente: mitad puntos, mitad flechas (luz natural) */
-  mk+=dot(dI,26)+arr(dI,40)+dot(dI,54)+arr(dI,68);
+  mk+=dot(dI,26)+arr(dI,42)+dot(dI,58)+arr(dI,74);
   /* reflejado: casi todo puntos, una flecha */
-  mk+=dot(dR,22)+dot(dR,36)+dot(dR,50)+arr(dR,64);
+  mk+=dot(dR,24)+dot(dR,40)+dot(dR,56)+arr(dR,74);
   /* refractado: algo de cada */
-  var dT=[0.34,0.94]; mk+=dot(dT,22)+arr(dT,40);
-  return '<figure class="fig"><svg viewBox="0 -18 340 168" role="img" aria-label="Al reflejarse, la vibración paralela a la superficie (puntos) se refleja más que la otra (flechas).">'+
-    '<rect x="10" y="'+oy+'" width="320" height="64" fill="var(--soft)" stroke="none"/><line x1="10" y1="'+oy+'" x2="330" y2="'+oy+'" stroke="var(--ink)" stroke-width="1.6"/>'+
-    '<line x1="'+ox+'" y1="'+(oy-70)+'" x2="'+ox+'" y2="'+(oy+55)+'" stroke="var(--line)" stroke-dasharray="4 4"/>'+
-    '<line x1="'+(ox-58)+'" y1="'+(oy-82)+'" x2="'+ox+'" y2="'+oy+'" stroke="var(--amber)" stroke-width="2.2"/>'+
-    '<line x1="'+ox+'" y1="'+oy+'" x2="'+(ox+58)+'" y2="'+(oy-82)+'" stroke="var(--amber)" stroke-width="2.2"/>'+
-    '<line x1="'+ox+'" y1="'+oy+'" x2="'+(ox+34)+'" y2="'+(oy+52)+'" stroke="var(--amber)" stroke-width="1.6" opacity=".7"/>'+
+  mk+=dot(dT,22)+arr(dT,44);
+  var qi=P(dI,L), qr=P(dR,L), qt=P(dT,Lt);
+  /* prolongación del incidente (punteada) para mostrar que el refractado se desvía */
+  var qx=P([-dI[0],-dI[1]],50);
+  return '<figure class="fig"><svg viewBox="-20 -6 380 166" role="img" aria-label="Al reflejarse, la vibración paralela a la superficie (puntos) se refleja más que la otra (flechas). El rayo refractado se acerca a la normal.">'+
+    '<rect x="10" y="'+oy+'" width="320" height="70" fill="var(--soft)" stroke="none"/><line x1="10" y1="'+oy+'" x2="330" y2="'+oy+'" stroke="var(--ink)" stroke-width="1.6"/>'+
+    '<line x1="'+ox+'" y1="'+(oy-78)+'" x2="'+ox+'" y2="'+(oy+66)+'" stroke="var(--line)" stroke-dasharray="4 4"/>'+
+    '<line x1="'+ox+'" y1="'+oy+'" x2="'+qx[0].toFixed(1)+'" y2="'+qx[1].toFixed(1)+'" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4"/>'+
+    ray(dI,L,2.2)+ray(dR,L,2.2)+ray(dT,Lt,2,'.85')+
     mk+
-    '<text x="'+(ox-66)+'" y="'+(oy-70)+'" text-anchor="end">incidente (natural)</text><text x="'+(ox+66)+'" y="'+(oy-76)+'">reflejado</text><text x="'+(ox+66)+'" y="'+(oy-62)+'">(casi todo puntos)</text>'+
-    '<text x="'+(ox+44)+'" y="'+(oy+60)+'">refractado</text><text x="16" y="'+(oy+14)+'">superficie</text></svg>'+
-    '<figcaption>Vista de costado. Punto: vibra perpendicular al papel, o sea paralela a la superficie. Flecha: vibra dentro del papel. En el rayo reflejado casi no quedan flechas.</figcaption></figure>';
+    '<text x="'+(qi[0]-6).toFixed(1)+'" y="'+(qi[1]+2).toFixed(1)+'" text-anchor="end">incidente</text><text x="'+(qi[0]-6).toFixed(1)+'" y="'+(qi[1]+16).toFixed(1)+'" text-anchor="end">(natural)</text><text x="'+(qr[0]+6).toFixed(1)+'" y="'+(qr[1]+2).toFixed(1)+'">reflejado</text><text x="'+(qr[0]+6).toFixed(1)+'" y="'+(qr[1]+16).toFixed(1)+'">(casi todo puntos)</text>'+
+    '<text x="'+(qt[0]+6).toFixed(1)+'" y="'+(qt[1]).toFixed(1)+'">refractado</text><text x="'+(qx[0]+6).toFixed(1)+'" y="'+(qx[1]-2).toFixed(1)+'" style="font-size:9.5px">sin desviarse iría por acá</text><text x="16" y="'+(oy+16)+'">superficie (vidrio)</text></svg>'+
+    '<figcaption>Vista de costado. Punto: vibra perpendicular al papel, o sea paralela a la superficie. Flecha: vibra dentro del papel. En el rayo reflejado casi no quedan flechas. El refractado se acerca a la normal (ley de Snell), así que no sigue la recta del incidente.</figcaption></figure>';
 }
 function figBrew(){
   var ox=170, oy=78, L=72, t=rad(56), u=rad(34);
@@ -372,7 +392,7 @@ var THEORY=[
  {h:'Luz natural y luz polarizada', p:['La luz natural vibra en todas las direcciones; <b>la polarizada vibra en una sola</b>. El sol y las lámparas emiten muchas ondas a la vez, cada una vibrando distinto.'], fig:figLight},
  {h:'Tipos de polarización', p:['Si la punta del vector E dibuja una recta, la luz es <b>lineal</b>; si dibuja un círculo, <b>circular</b>; si dibuja una elipse, <b>elíptica</b>. <b>En los problemas de esta guía solo aparece la lineal.</b>'], fig:figTipos},
  {h:'Cómo se obtiene luz polarizada', p:['Hay cinco formas: emisión selectiva (antenas), absorción selectiva (filtros), reflexión, dispersión (la luz del cielo) y doble refracción (cristales como la calcita). <b>Los problemas usan dos: los filtros (problemas 7 y 8) y la reflexión (problema 2).</b>']},
- {h:'El filtro polarizador', p:['Deja pasar la vibración paralela a su <b>eje de transmisión</b> y frena la perpendicular. <b>Con luz natural pasa la mitad: I₁ = I₀ / 2.</b> En una pila de filtros, el primero se llama polarizador y el segundo, analizador.'], fig:figGrille},
+ {h:'El filtro polarizador', p:['Está hecho de largas cadenas de hidrocarburos alineadas. <b>La vibración en la dirección de las cadenas se absorbe y la perpendicular pasa.</b> Esa dirección que pasa es el <b>eje de transmisión</b>. <b>Con luz natural pasa la mitad: I₁ = I₀ / 2.</b> En una pila de filtros, el primero se llama polarizador y el segundo, analizador.'], fig:figGrille},
  {h:'Ley de Malus', p:['Cuando luz ya polarizada llega a otro filtro, pasa <b>I = I_máx · cos²θ</b>. θ es el ángulo <i>entre los ejes</i> de los dos filtros. Con ejes paralelos (0°) pasa todo; con ejes cruzados (90°), nada.'], fig:figMalus},
  {h:'Polarización por reflexión', p:['Al reflejarse en una superficie (agua, vidrio, nieve) se refleja más la vibración paralela a la superficie (los puntos del dibujo) que la otra (las flechas). <b>El reflejo queda parcialmente polarizado.</b> Por eso el brillo del agua o de la nieve es muy “horizontal”.'], fig:figRefl},
  {h:'Ángulo de polarización θp (Brewster)', p:['Para un ángulo de incidencia especial, el rayo reflejado y el refractado forman 90° y <b>el reflejado queda totalmente polarizado</b>. Ese ángulo cumple <b>tan θp = n₂ / n₁</b>; sale de θp + 90° + θr = 180° y de la ley de Snell. Con aire, tan θp = n: agua ≈ 53°, vidrio ≈ 56°. El rayo refractado solo queda parcialmente polarizado.'], fig:figBrew},
@@ -455,7 +475,7 @@ var PROBS=[
     {t:'Respuesta', f:[], i:[
       ['Respuesta','El índice de refracción del vidrio es n₂ ≈ '+fn(n0,4)+' y el rayo refractado forma un ángulo θr = '+fn(tr0,4)+'° con la normal.']]} ]; },
   life:{
-    top:'<h2>Anteojos polarizados contra el reflejo</h2><p>El reflejo del agua llega con mucha luz acostada: está casi toda polarizada en horizontal, sobre todo cuando lo mirás cerca del ángulo de Brewster (unos 53° para el agua). Los anteojos polarizados tienen su eje en vertical, así que dejan pasar la luz parada y frenan la acostada. El reflejo se apaga y aparece lo que hay bajo el agua.</p><p>A la izquierda ves el lago sin anteojos; a la derecha, a través de un lente polarizado. Girá el lente y mirá qué pasa con el reflejo.</p>',
+    top:'<h2>Anteojos polarizados contra el reflejo</h2><p>El reflejo del agua llega con mucha luz acostada: está casi toda polarizada en horizontal, sobre todo cuando lo mirás cerca del ángulo de Brewster (unos 53° para el agua). Los anteojos polarizados tienen su eje en vertical, así que dejan pasar la luz parada y absorben la acostada. El reflejo se apaga y aparece lo que hay bajo el agua.</p><p>A la izquierda ves el lago sin anteojos; a la derecha, a través de un lente polarizado. Girá el lente y mirá qué pasa con el reflejo.</p>',
     label:'Giro del lente', min:0, max:90, hint:'0° es como usás los anteojos, derechos. 90° es con el lente de costado.',
     draw:function(g,v){ drawLake(g,v); },
     out:function(v){ var t=Math.pow(Math.sin(rad(v)),2); return 'Pasa el <b>'+fmt(t*100,0)+' %</b> del reflejo (cos² de '+fmt(90-v,0)+'°, el ángulo entre el lente y la vibración acostada).'; },
@@ -468,9 +488,8 @@ var PROBS=[
 { tab:'Problema 7', sub:'Dos filtros',
   ask:'Una luz de 20 W/cm² pasa por dos filtros polarizadores con ejes a 25° y a 62°. ¿Cuánta luz sale del segundo?',
   full:'La luz no polarizada con una intensidad de 20,0 W/cm² incide en dos filtros polarizadores. El eje del primer filtro está a un ángulo de 25,0° de la vertical en sentido contrario a las manecillas del reloj (visto en la dirección de propagación de la luz) y el eje del segundo está a un ángulo de 62,0° de la vertical en ese mismo sentido. ¿Cuál es la intensidad de la luz después que ha pasado a través del segundo polarizador?',
-  note:'En la Guía el dato figura como 20,0 W/m²; la resolución de la cátedra usa W/cm², y esa es la unidad que seguimos.',
   idea:'<b>Idea clave:</b> un filtro deja pasar una sola dirección de vibración. Si el segundo está inclinado, pasa solo una parte.',
-  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial: la línea celeste marca la dirección que deja pasar (0° = vertical). Los números de abajo son la intensidad en cada tramo.</span></span>',
+  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial visto de frente: la flecha celeste es el eje de transmisión (0° = vertical). Entre filtros, Δθ es el ángulo entre ejes consecutivos: el que usa la ley de Malus. Los números de abajo son la intensidad en cada tramo.</span></span><span class="lg"><span>El dibujo está en perspectiva: los filtros son placas y la vibración horizontal se ve en diagonal, “entrando” al papel.</span></span>',
   use:[5,6],
   controls:function(){ return [
     {id:'a1',label:'Eje del 1.er filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f2.a1},set:function(v){S.f2.a1=v}},
@@ -503,23 +522,23 @@ var PROBS=[
       ['Fórmula',fx('I₂ = I₁ · cos²Δθ')],
       ['Cálculos','I₂ = I₁ · cos²Δθ = '+fn(I1,4)+' · cos²('+fn(d,0)+'°) = '+fn(I2,4)+' W/cm²']]},
     {t:'Respuesta', f:['out'], i:[
-      ['Respuesta','La intensidad de la luz que sale del segundo filtro es I₂ ≈ '+fn(I2,4)+' W/cm² (equivale a '+fn(I2*1e4,4)+' W/m²), el '+fn(I2/I0*100,1)+' % de la luz que entró.']]} ]; },
+      ['Respuesta','La intensidad de la luz que sale del segundo filtro es I₂ ≈ '+fn(I2,4)+' W/cm², el '+fn(I2/I0*100,1)+' % de la luz que entró.']]} ]; },
   life:{
     top:'<h2>Dos lentes polarizados superpuestos</h2><p>Imaginá dos lentes de anteojos polarizados apoyados uno sobre otro, frente a una ventana. Cada lente solo deja pasar la mitad de la luz (50 %), como el primer filtro del problema. Donde se superponen, pasa el 50 % multiplicado por cos² del ángulo entre sus ejes.</p><p>El lente 1 tiene el eje vertical. Girá el lente 2 y mirá cómo se oscurece la zona del medio.</p>',
     label:'Giro del lente 2', min:0, max:90, hint:'En el problema, la diferencia entre ejes es de 37°.',
     draw:function(g,v){ drawLenses2(g,v); },
     out:function(v){ var t=50*cos2(v); return 'En la zona superpuesta pasa el <b>'+fmt(t,1)+' %</b> de la luz. Con 20 W/cm² de entrada serían <b>'+fmt(t*0.2,2)+' W/cm²</b>.'; },
     bot:'<p>A 0° los lentes son paralelos y la zona del medio queda igual que un lente solo. A 90° quedan cruzados y la zona se vuelve negra. Con 37° obtenés el resultado del problema: 6,38 W/cm².</p><p class="note">Pasa algo parecido con la pantalla del celular o de la notebook: muchas emiten luz ya polarizada. Si las mirás con anteojos polarizados y girás el celular, se oscurece y se aclara. No todos los anteojos de sol son polarizados.</p>'},
-  table:function(){ var I2=chain([25,62],P7_I0)[2]*1e4;
-    return {rows:tbRow('I₂, intensidad final (W/m²)',63781.86,I2,2),
-      note:'Cátedra: resolución de la Guía (I₀ = 20 W/cm², resultado en W/m²). Simulador: la misma cadena de filtros calculada con los datos del problema. Coinciden hasta el redondeo.'}; }
+  table:function(){ var I2=chain([25,62],P7_I0)[2];
+    return {rows:tbRow('I₂, intensidad final (W/cm²)',6.3782,I2,4),
+      note:'Cátedra: resolución de la Guía. Simulador: la misma cadena de filtros calculada con los datos del problema. Coinciden hasta el redondeo.'}; }
 },
 /* ---------------- Problema 8 ---------------- */
 { tab:'Problema 8', sub:'Tres filtros',
   ask:'Con tres filtros apilados salen 75 W/cm². Si sacás el del medio y entra la misma luz, ¿cuánta sale?',
   full:'Se tienen tres filtros polarizadores apilados, con el eje de polarización de los filtros segundo y tercero a 23,0° y 62,0°, respecto al del primero. Si incide luz no polarizada en la pila, la luz tiene una intensidad de 75,0 W/cm² después de atravesar la pila. Si se mantiene constante la intensidad incidente, ¿cuál es la intensidad de la luz después de pasar a través de la pila si se quita el segundo polarizador?',
   idea:'<b>Idea clave:</b> los filtros pueden girar la vibración de a poco. Con un filtro en el medio puede pasar más luz, no menos.',
-  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial: la línea celeste marca la dirección que deja pasar (0° = vertical). Los números de abajo son la intensidad en cada tramo.</span></span>',
+  legend:'<span class="lg"><span>Cada rayita muestra en qué dirección vibra la luz. La línea tenue marca hasta dónde llega la vibración: cuanto menos luz pasa, más corta es.</span></span><span class="lg"><span>El círculo de arriba de cada filtro es un dial visto de frente: la flecha celeste es el eje de transmisión (0° = vertical). Entre filtros, Δθ es el ángulo entre ejes consecutivos: el que usa la ley de Malus. Los números de abajo son la intensidad en cada tramo.</span></span><span class="lg"><span>El dibujo está en perspectiva: los filtros son placas y la vibración horizontal se ve en diagonal, “entrando” al papel.</span></span>',
   use:[5,6],
   controls:function(){ return [
     {id:'a2',label:'Eje del 2.º filtro',min:0,max:180,step:1,unit:'°',d:0,get:function(){return S.f3.a2},set:function(v){S.f3.a2=v}}
@@ -585,6 +604,8 @@ function ensure(o){
   return true;
 }
 var AMBER='242,185,46';
+var DX=0.5, DY=-0.42; /* dirección en pantalla de la vibración horizontal (entra al papel) */
+function pj(th,L){ return [Math.sin(th)*L*DX, -Math.cos(th)*L+Math.sin(th)*L*DY]; }
 function line(x1,y1,x2,y2,col,w){ ctx.strokeStyle=col; ctx.lineWidth=w; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
 function text(s,x,y,align,font,col){ ctx.font=font||('11px '+MONO); ctx.fillStyle=col||'rgba(207,217,236,.88)'; ctx.textAlign=align||'center'; ctx.textBaseline='alphabetic'; ctx.fillText(s,x,y); }
 function has(list,k){ return list.indexOf(k)>=0; }
@@ -597,16 +618,16 @@ function drawFilters(g,sp,t,opt){
   var ints=chain(present.map(function(s){return s.axis}),I0);
   var y0=H*0.56, xs=[], xSrc=34, xScr=W-24, nS=slots.length;
   if(nS===2) xs=[W*0.38,W*0.66]; else for(var u=0;u<nS;u++) xs.push(W*0.3+W*0.44*u/(nS-1));
-  var sp2=xs[1]-xs[0], dr=Math.min(19,sp2/2-3), shortLbl=sp2<62;
+  var sp2=xs[1]-xs[0], dr=Math.min(19,sp2/2-3), shortLbl=sp2<84, HW=Math.min(26,sp2*0.2);
   slots.forEach(function(s,i){ s.x=xs[i]; });
   var px=present.map(function(s){return s.x});
   var Amax=Math.min(46,W*0.11);
   ctx.fillStyle='#0b0f1e'; ctx.fillRect(0,0,W,H);
   line(xSrc,y0,xScr,y0,'rgba('+AMBER+',.14)',1);
-  var S=30, off=(t*55)%S;
+  var S=Math.max(15,Math.min(30,sp2/3.6)), off=(t*55)%S;
   for(var x=xSrc+18+off; x<xScr-8; x+=S){
     var skip=false, st=0;
-    for(var k=0;k<px.length;k++){ if(Math.abs(x-px[k])<10) skip=true; if(x>px[k]) st++; }
+    for(var k=0;k<px.length;k++){ if(Math.abs(x-px[k])<DX*HW+5) skip=true; if(x>px[k]) st++; }
     if(skip) continue;
     var ph=x*0.2-t*6;
     var A=st===0?Amax:Amax*Math.sqrt(ints[st]/I0);
@@ -614,14 +635,14 @@ function drawFilters(g,sp,t,opt){
     ctx.strokeStyle='rgba('+AMBER+','+alpha+')'; ctx.lineWidth=2.2; ctx.lineCap='round';
     if(st===0){
       for(var j=0;j<7;j++){
-        var th=rad(j*180/7+12), L=A*0.9*Math.cos(ph+j*2.1);
-        ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x-Math.sin(th)*L,y0-Math.cos(th)*L); ctx.stroke();
+        var th=rad(j*180/7+12), L=A*0.9*Math.cos(ph+j*2.1), q=pj(th,L);
+        ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x+q[0],y0+q[1]); ctx.stroke();
       }
     } else {
-      var th2=rad(present[st-1].axis), L2=A*Math.cos(ph);
-      ctx.strokeStyle='rgba('+AMBER+',.22)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(x-Math.sin(th2)*A,y0-Math.cos(th2)*A); ctx.lineTo(x+Math.sin(th2)*A,y0+Math.cos(th2)*A); ctx.stroke();
+      var th2=rad(present[st-1].axis), L2=A*Math.cos(ph), qa=pj(th2,A), q2=pj(th2,L2);
+      ctx.strokeStyle='rgba('+AMBER+',.22)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(x+qa[0],y0+qa[1]); ctx.lineTo(x-qa[0],y0-qa[1]); ctx.stroke();
       ctx.strokeStyle='rgba('+AMBER+','+alpha+')'; ctx.lineWidth=2.2;
-      ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x-Math.sin(th2)*L2,y0-Math.cos(th2)*L2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x+q2[0],y0+q2[1]); ctx.stroke();
     }
   }
   var gr=ctx.createRadialGradient(xSrc,y0,2,xSrc,y0,26); gr.addColorStop(0,'rgba('+AMBER+',.9)'); gr.addColorStop(1,'rgba('+AMBER+',0)');
@@ -639,13 +660,17 @@ function drawFilters(g,sp,t,opt){
     ctx.lineWidth=1.5;
     if(s.present){ ctx.fillStyle='rgba(110,160,255,.18)'; ctx.strokeStyle='rgba(120,170,255,.95)'; ctx.setLineDash([]); }
     else { ctx.fillStyle='rgba(110,160,255,.03)'; ctx.strokeStyle='rgba(120,170,255,.35)'; ctx.setLineDash([4,4]); }
-    ctx.beginPath(); ctx.rect(x-7,y0-62,14,124); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    var hw=HW, ex=DX*hw, ey=DY*hw;
+    ctx.beginPath(); ctx.moveTo(x-ex,y0-62-ey); ctx.lineTo(x+ex,y0-62+ey); ctx.lineTo(x+ex,y0+62+ey); ctx.lineTo(x-ex,y0+62-ey); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    if(s.present){ var ta=rad(s.axis), qa2=pj(ta,52); line(x-qa2[0],y0-qa2[1],x+qa2[0],y0+qa2[1],'rgba(120,200,255,.55)',1.5); }
     ctx.strokeStyle=s.present?'rgba(207,217,236,.55)':'rgba(207,217,236,.2)'; ctx.lineWidth=1.2;
     ctx.beginPath(); ctx.arc(x,dcy,dr,0,6.2832); ctx.stroke();
     line(x,dcy-dr,x,dcy-dr+5,'rgba(207,217,236,.55)',1.2);
     if(s.present){
       var th=rad(s.axis), hl=dr-3;
-      line(x+Math.sin(th)*hl,dcy-Math.cos(th)*hl,x-Math.sin(th)*hl,dcy+Math.cos(th)*hl,'rgb(120,200,255)',3);
+      var ax1=x+Math.sin(th)*hl, ay1=dcy-Math.cos(th)*hl, ax2=x-Math.sin(th)*hl, ay2=dcy+Math.cos(th)*hl;
+      line(ax1,ay1,ax2,ay2,'rgb(120,200,255)',2.6);
+      [[ax1,ay1,1],[ax2,ay2,-1]].forEach(function(e){ var ux=Math.sin(th)*e[2], uy=-Math.cos(th)*e[2], b=5, w2=3.5; ctx.fillStyle='rgb(120,200,255)'; ctx.beginPath(); ctx.moveTo(e[0],e[1]); ctx.lineTo(e[0]-ux*b-uy*w2,e[1]-uy*b+ux*w2); ctx.lineTo(e[0]-ux*b+uy*w2,e[1]-uy*b-ux*w2); ctx.closePath(); ctx.fill(); });
       text(fmt(s.axis,0)+'°',x,y0-72,'center','12px '+MONO,'rgba(235,240,250,.95)');
     } else {
       text(shortLbl?'sin':'sin filtro',x,y0-72,'center');
@@ -653,6 +678,11 @@ function drawFilters(g,sp,t,opt){
     text((shortLbl?'F':'Filtro ')+(i+1),x,y0+86,'center');
     if(has(foc,i)){ ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=2; ctx.strokeRect(x-12,y0-67,24,134); ctx.beginPath(); ctx.arc(x,dcy,dr+5,0,6.2832); ctx.stroke(); }
   });
+  for(var z=1;z<present.length;z++){
+    var dz=angBetween(present[z].axis,present[z-1].axis), mx=(present[z].x+present[z-1].x)/2, tight=(present[z].x-present[z-1].x-2*dr)<80;
+    text((tight?'Δ':'Δθ = ')+fmt(dz,0)+'°',mx,52+4,'center',(tight?'600 10px ':'600 12px ')+MONO,'rgb(120,200,255)');
+    if(!tight) text('entre ejes',mx,52+18,'center','10px '+MONO,'rgba(207,217,236,.7)');
+  }
   var bounds=[xSrc].concat(px,[xScr]);
   for(var q=0;q<ints.length;q++){
     var mid=(bounds[q]+bounds[q+1])/2, last=(q===ints.length-1);
@@ -960,5 +990,4 @@ buildTop(); setProb(0); showTheory();
 requestAnimationFrame(function(ts){ tPrev=ts; frame(ts); });
 })();
 </script>
-
 </body></html>
